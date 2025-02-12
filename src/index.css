@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+.menu summary:hover {
+    @apply bg-[#EC3113];
+}
+
+.menu ul li a:hover {
+    @apply bg-[#EC3113];
+}
+
+.menu ul li a:active {
+    @apply bg-[#EC3113];
+}
