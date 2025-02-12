@@ -5,7 +5,7 @@ export const List = ({elements}: { elements: User[] | TrazaType[] }) => {
     return (
         <>
             {elements.length > 0 ? (
-                <ul className="list shadow-md">
+                <ul className="list shadow-md w-[100%]">
                     {elements.map(element => (
                         <li className='list-row items-center rounded-none hover:bg-black' key={element.id}>
                             <PdfIcon/>
