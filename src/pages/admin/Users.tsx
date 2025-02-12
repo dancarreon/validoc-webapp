@@ -18,7 +18,7 @@ export const Users = () => {
     }
 
     return (
-        <div className='h-[100vh] content-center'>
+        <div className='h-[100%] content-center'>
             <Container styles='my-3'>
                 <Header title='Usuarios'/>
                 <SubHeader titles={['Nombre', 'Activo']}/>
