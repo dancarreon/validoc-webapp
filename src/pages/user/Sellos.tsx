@@ -6,7 +6,7 @@ import {Steps} from "../../components/Steps.tsx";
 
 export const Sellos = () => {
     return (
-        <div className='h-[100vh] content-center'>
+        <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Steps step={2}/>
                 <Header title='Sellos'/>

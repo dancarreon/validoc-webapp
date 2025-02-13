@@ -2,6 +2,7 @@ import {Header} from "../../components/Header.tsx";
 import {SubHeader} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
+import {Pagination} from "../../components/Pagination.tsx";
 
 export const Users = () => {
 
@@ -24,6 +25,7 @@ export const Users = () => {
                 <SubHeader titles={['Nombre', 'Activo']}/>
                 <List elements={userList}/>
             </Container>
+            <Pagination/>
         </div>
     )
 }

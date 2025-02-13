@@ -6,7 +6,7 @@ import {Header} from "../../components/Header.tsx";
 
 export const NationalData = () => {
     return (
-        <div className='h-[90vh] content-center'>
+        <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Steps step={1}/>
                 <Header title='Datos Nacional'/>

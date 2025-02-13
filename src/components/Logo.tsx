@@ -2,7 +2,7 @@ import logo from '../assets/logo.png'
 
 export const Logo = () => {
     return (
-        <div className="bg-black rounded-t-xl grid justify-center pt-10 pb-6 mb-8">
+        <div className="bg-black rounded-t-xl grid justify-center pt-10 pb-6 mb-8 w-[100%]">
             <div className='flex justify-center'>
                 <img src={logo} alt="Capitoil" className='h-[100px]'/>
             </div>

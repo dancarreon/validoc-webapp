@@ -5,7 +5,7 @@ import {Button} from "../../components/Button.tsx";
 
 export const NewUser = () => {
     return (
-        <div className='h-[90vh] content-center'>
+        <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Header title='Nuevo Usuario'/>
                 <form onSubmit={(e) => e.preventDefault()} className='mt-5'>

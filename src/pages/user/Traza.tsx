@@ -23,7 +23,7 @@ export const Traza = () => {
         }]
 
     return (
-        <div className='h-[90vh] content-center'>
+        <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Steps step={4}/>
                 <Header title='Traza'/>

@@ -21,3 +21,8 @@
     @apply bg-[#EC3113];
     @apply border-[#EC3113];
 }
+
+.join-item:checked  {
+    @apply bg-[#EC3113];
+    @apply border-[#EC3113];
+}
