@@ -3,6 +3,7 @@ import {Header} from "../../components/Header.tsx";
 import {SubHeader} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {TrazaType} from "../../api/types/types.tsx";
+import {Steps} from "../../components/Steps.tsx";
 
 export const Traza = () => {
 
@@ -24,6 +25,7 @@ export const Traza = () => {
     return (
         <div className='h-[90vh] content-center'>
             <Container>
+                <Steps step={4}/>
                 <Header title='Traza'/>
                 <SubHeader titles={['Nombre', 'QR Activo']}/>
                 <List elements={documentList}/>

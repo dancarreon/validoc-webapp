@@ -1,12 +1,14 @@
 import {Container} from "../../components/Container.tsx";
-import {Header} from "../../components/Header.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
+import {Steps} from "../../components/Steps.tsx";
+import {Header} from "../../components/Header.tsx";
 
 export const NationalData = () => {
     return (
         <div className='h-[90vh] content-center'>
             <Container>
+                <Steps step={1}/>
                 <Header title='Datos Nacional'/>
                 <form onSubmit={e => e.preventDefault()} className='mt-5'>
                     <TextInput type='text' placeholder='TAD Dirección'/>

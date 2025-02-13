@@ -5,7 +5,7 @@ export const TextInput = ({type, name, placeholder, value}: {
     value?: string
 }) => {
     return (
-        <input type={type} name={name} placeholder={placeholder} value={value}
-               className="input w-83 sm:w-83 rounded-full my-2 py-6 bg-white placeholder:text-[#BFBFBF] text-black text-lg "/>
+        <input type={type} name={name} placeholder={placeholder} value={value} alt={placeholder}
+               className="input w-83 sm:w-100 rounded-full my-2 py-6 bg-white placeholder:text-[#BFBFBF] text-black text-lg"/>
     )
 }

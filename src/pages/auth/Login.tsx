@@ -21,7 +21,7 @@ export const Login = () => {
 
     return (
         <div className='h-[100vh] content-center'>
-            <Container styles='m-auto'>
+            <Container styles='m-auto pb-7'>
                 <Logo/>
                 <form action={submit}>
                     <TextInput type={'text'} name='usuario' placeholder={'Usuario'}/>

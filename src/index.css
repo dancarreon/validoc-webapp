@@ -12,3 +12,13 @@
 .menu ul li a:active {
     @apply bg-[#EC3113];
 }
+
+.step-primary:before  {
+    @apply bg-[#EC3113];
+    @apply border-[#EC3113];
+}
+
+.step-primary:after  {
+    @apply bg-[#EC3113];
+    @apply border-[#EC3113];
+}

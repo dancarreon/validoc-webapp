@@ -16,11 +16,11 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
                     </svg>
                 </a>
             </div>
-            <div className="flex-none">
+            <div className="flex text-right">
                 <ul className="menu menu-horizontal px-1 p-0">
-                    <li className='w-30 text-rigth'>
+                    <li className='w-[140px]'>
                         <details>
-                            <summary>Menu</summary>
+                            <summary className='flex justify-end pr-5'>Menu</summary>
                             <ul className="bg-black rounded-t-none">
                                 <li>
                                     <a href={'/' + prefix + '/datos-nacional'}>Nueva Traza</a>
