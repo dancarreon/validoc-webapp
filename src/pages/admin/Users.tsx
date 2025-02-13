@@ -25,7 +25,7 @@ export const Users = () => {
                 <SubHeader titles={['Nombre', 'Activo']}/>
                 <List elements={userList}/>
             </Container>
-            <Pagination/>
+            <Pagination currentPage={2}/>
         </div>
     )
 }
