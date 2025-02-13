@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@plugin "daisyui";
 
 .menu summary:hover {
     @apply bg-[#EC3113];
