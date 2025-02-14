@@ -12,14 +12,14 @@ export const UserInfo = ({user}: { user?: User }) => {
     } as User;
 
     return (
-        <div className='h-[90vh] content-center'>
+        <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Header title={user.nombre}/>
                 <form onSubmit={(e) => e.preventDefault()} className='mt-5'>
                     <TextInput type='text' placeholder='Nombre de Usuario' value={user.nombre}/>
                     <TextInput type='text' placeholder='Contraseña' value={user.password}/>
                     <Button label='Guardar'/>
-                    <Button styles='bg-black' label='Desactivar'/>
+                    <Button styles='bg-black ml-1' label='Desactivar'/>
                 </form>
             </Container>
         </div>

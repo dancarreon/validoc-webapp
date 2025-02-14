@@ -3,6 +3,7 @@ import {SubHeader} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
 import {Pagination} from "../../components/Pagination.tsx";
+import {Search} from "../../components/Search.tsx";
 
 export const Users = () => {
 
@@ -20,6 +21,7 @@ export const Users = () => {
 
     return (
         <div className='h-[100%] content-center'>
+            <Search/>
             <Container styles='my-3'>
                 <Header title='Usuarios'/>
                 <SubHeader titles={['Nombre', 'Activo']}/>

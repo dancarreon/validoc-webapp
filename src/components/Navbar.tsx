@@ -5,7 +5,7 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
     const prefix = isAdmin ? 'admin' : 'user';
 
     return (
-        <div className="navbar bg-black shadow-sm p-0 absolute sticky top-0 z-50 h-[65px]">
+        <div className="navbar bg-black shadow-sm p-0 sticky top-0 z-50 h-[65px]">
             <div className="flex-1 text-left -m-2">
                 <a className="btn btn-ghost text-xl font-[Alexandria]" href={'/' + prefix}>
                     <img src={logo} alt="Capitoil" className='h-[30px]'/>
@@ -30,7 +30,7 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
                                 </li>
                                 {isAdmin && (<li><a href={'/' + prefix + '/usuarios'}>Usuarios</a></li>)}
                                 {isAdmin && (<li><a href={'/' + prefix + '/nuevo-usuario'}>Nuevo Usuario</a></li>)}
-                                <li>
+                                <li className='bg-[#EC3113]'>
                                     <a href={'/'}>Salir</a>
                                 </li>
                             </ul>

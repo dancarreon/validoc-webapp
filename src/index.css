@@ -26,3 +26,7 @@
     @apply bg-[#EC3113];
     @apply border-[#EC3113];
 }
+
+.search .input{
+    width: clamp(3rem, 30rem, 100%);
+}
