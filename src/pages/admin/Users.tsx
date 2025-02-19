@@ -4,20 +4,17 @@ import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
 import {Pagination} from "../../components/Pagination.tsx";
 import {Search} from "../../components/Search.tsx";
+import {useEffect, useState} from "react";
+import {getAllUsers} from "../../api/users.ts";
 
 export const Users = () => {
 
-    const userList = []
+    const [userList, setUserList] = useState({});
 
-    for (let i = 0; i < 10; i++) {
-        const user = {
-            id: i + 1,
-            nombre: "Usuario " + (i + 1),
-            active: (i % 2 === 0),
-            password: String((i * Math.random())),
-        };
-        userList.push(user);
-    }
+    useEffect(() => {
+        getAllUsers()
+            .then((response) => setUserList(response));
+    }, [])
 
     return (
         <div className='h-[100%] content-center'>
@@ -25,7 +22,7 @@ export const Users = () => {
             <Container styles='my-3'>
                 <Header title='Usuarios'/>
                 <SubHeader titles={['Nombre', 'Activo']}/>
-                <List elements={userList}/>
+                <List isUser={true} elements={userList}/>
             </Container>
             <Pagination currentPage={2}/>
         </div>

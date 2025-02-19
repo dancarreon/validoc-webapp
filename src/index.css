@@ -28,5 +28,5 @@
 }
 
 .search .input{
-    width: clamp(3rem, 30rem, 100%);
+    width: clamp(3rem, 30rem, 88%);
 }

@@ -2,7 +2,7 @@ import {Container} from "../../components/Container.tsx";
 import {Header} from "../../components/Header.tsx";
 import {SubHeader} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
-import {TrazaType} from "../../api/types/types.tsx";
+import {StatusType, TrazaType} from "../../api/types/types.tsx";
 import {Steps} from "../../components/Steps.tsx";
 
 export const Traza = () => {
@@ -10,16 +10,16 @@ export const Traza = () => {
     const documentList: TrazaType[] =
         [{
             id: 1,
-            nombre: "Document 1",
-            active: true,
+            username: "Document 1",
+            status: StatusType.INACTIVE,
         }, {
             id: 2,
-            nombre: "Document 2",
-            active: true,
+            username: "Document 2",
+            status: StatusType.INACTIVE,
         }, {
             id: 3,
-            nombre: "Document 3",
-            active: false,
+            username: "Document 3",
+            status: StatusType.INACTIVE,
         }]
 
     return (
@@ -28,7 +28,7 @@ export const Traza = () => {
                 <Steps step={4}/>
                 <Header title='Traza'/>
                 <SubHeader titles={['Nombre', 'QR Activo']}/>
-                <List elements={documentList}/>
+                <List isUser={false} elements={documentList}/>
             </Container>
         </div>
     )
