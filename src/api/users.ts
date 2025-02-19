@@ -12,7 +12,7 @@ export const createUser = async (user?: CreateUserType): Promise<UserType> => {
     }).then((response) => response.json());
 };
 
-export const getAllUsers = async (): Promise<UserType> => {
+export const getAllUsers = async (): Promise<UserType[]> => {
     return await fetch(API_URL + '/users', {
         method: "GET",
         headers: {

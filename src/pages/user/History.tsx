@@ -2,6 +2,7 @@ import {Header} from "../../components/Header.tsx";
 import {SubHeader} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
+import {StatusType, TrazaType} from "../../api/types/types.tsx";
 
 export const History = () => {
 
@@ -9,13 +10,13 @@ export const History = () => {
 
     for (let j = 0; j < 4; j++) {
 
-        const documents = [];
+        const documents: TrazaType[] = [];
 
         for (let i = 0; i < Math.floor(Math.random() * 5); i++) {
-            const document = {
+            const document: TrazaType = {
                 id: i + 1,
-                nombre: "Documento " + (i + 1),
-                active: (i % 2 === 0),
+                name: "Documento " + (i + 1),
+                status: (i % 2 === 0 ? StatusType.ACTIVE : StatusType.INACTIVE),
             };
             documents.push(document);
         }
@@ -29,7 +30,7 @@ export const History = () => {
                 <Container key={index}>
                     <Header title={'Traza ' + index}/>
                     <SubHeader titles={['Nombre', 'QR Activo']}/>
-                    <List elements={history}/>
+                    <List isUser={false} elements={history}/>
                 </Container>
             ))}
         </div>

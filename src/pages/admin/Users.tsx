@@ -6,10 +6,11 @@ import {Pagination} from "../../components/Pagination.tsx";
 import {Search} from "../../components/Search.tsx";
 import {useEffect, useState} from "react";
 import {getAllUsers} from "../../api/users.ts";
+import {UserType} from "../../api/types/types.tsx";
 
 export const Users = () => {
 
-    const [userList, setUserList] = useState({});
+    const [userList, setUserList] = useState<UserType[]>([]);
 
     useEffect(() => {
         getAllUsers()

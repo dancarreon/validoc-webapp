@@ -20,6 +20,6 @@ export type CreateUserType = Omit<UserType, 'id' | 'createdAt' | 'updatedAt' | '
 
 export interface TrazaType {
     id: number;
-    username: string;
+    name: string;
     status: StatusType;
 }
