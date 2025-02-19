@@ -10,15 +10,15 @@ export const Traza = () => {
     const documentList: TrazaType[] =
         [{
             id: 1,
-            username: "Document 1",
+            name: "Document 1",
             status: StatusType.INACTIVE,
         }, {
             id: 2,
-            username: "Document 2",
+            name: "Document 2",
             status: StatusType.INACTIVE,
         }, {
             id: 3,
-            username: "Document 3",
+            name: "Document 3",
             status: StatusType.INACTIVE,
         }]
 

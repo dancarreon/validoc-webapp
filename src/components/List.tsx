@@ -12,7 +12,7 @@ export const List = ({elements, isUser = false}: { elements: UserType[] | TrazaT
                             key={element.id}>
                             {isUser ? (<UserListIcon/>) : <PdfIcon/>}
                             <div className='text-m content-center'>
-                                <div className='text-left'>{element.username}</div>
+                                <div className='text-left'>{"username" in element ? element.username : element.name}</div>
                             </div>
                             <input type="checkbox" checked={element.status === StatusType.ACTIVE.valueOf()}
                                    readOnly={true}
