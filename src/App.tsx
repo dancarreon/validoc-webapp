@@ -37,7 +37,7 @@ const App = () => {
                     <Route index element={<MenuAdmin/>}/>
                     <Route path="usuarios" element={<Users/>}/>
                     <Route path="nuevo-usuario" element={<NewUser/>}/>
-                    <Route path="info-usuario/:id" element={<UserInfo />}/>
+                    <Route path="usuario/:id" element={<UserInfo />}/>
                     <Route path="datos-nacional" element={<NationalData/>}/>
                     <Route path="sellos" element={<Stamps/>}/>
                     <Route path="folios" element={<Folios/>}/>
