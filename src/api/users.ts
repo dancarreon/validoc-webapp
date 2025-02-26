@@ -1,7 +1,6 @@
 import {CreateUserType, UpdateUserType, UserType} from "./types/user-types.ts";
 
-//const API_URL = "http://localhost:3000";
-const API_URL = "https://capitoil-api.vercel.app";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const createUser = async (user?: CreateUserType): Promise<UserType> => {
     return await fetch(API_URL + '/users', {
