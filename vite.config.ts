@@ -6,6 +6,8 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
     plugins: [react(), tailwindcss(),],
     server: {
-        cors: false,
+        proxy: {
+            '/': 'https://capitoil-api.vercel.app'
+        }
     }
 })
