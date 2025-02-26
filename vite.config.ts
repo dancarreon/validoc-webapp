@@ -7,7 +7,11 @@ export default defineConfig({
     plugins: [react(), tailwindcss(),],
     server: {
         proxy: {
-            '/': 'https://capitoil-api.vercel.app'
+            '/': {
+                target: 'https://capitoil-api.vercel.app',
+                changeOrigin: true,
+                secure: false,
+            }
         }
     }
 })
