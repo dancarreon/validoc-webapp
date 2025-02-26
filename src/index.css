@@ -30,3 +30,16 @@
 .search .input{
     width: clamp(3rem, 30rem, 88%);
 }
+
+.show-alert {
+    float: left;
+    margin-top: 5rem;
+    animation: fadeinout 5s linear forwards;
+}
+
+@keyframes fadeinout {
+    0% { opacity: 0 }
+    20% { opacity: 1 }
+    80% { opacity: 1 }
+    100% { opacity: 0 }
+}

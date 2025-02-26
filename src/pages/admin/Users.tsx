@@ -6,15 +6,14 @@ import {Pagination} from "../../components/Pagination.tsx";
 import {Search} from "../../components/Search.tsx";
 import {useEffect, useState} from "react";
 import {getAllUsers} from "../../api/users.ts";
-import {UserType} from "../../api/types/types.tsx";
+import {UserType} from "../../api/types/user-types.ts";
 
 export const Users = () => {
 
     const [userList, setUserList] = useState<UserType[]>([]);
 
     useEffect(() => {
-        getAllUsers()
-            .then((response) => setUserList(response));
+        getAllUsers().then((response) => setUserList(response));
     }, [])
 
     return (

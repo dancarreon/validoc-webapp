@@ -4,12 +4,12 @@ import {Button} from "../../components/Button.tsx";
 import {Container} from "../../components/Container.tsx";
 import {Steps} from "../../components/Steps.tsx";
 
-export const Sellos = () => {
+export const Stamps = () => {
     return (
         <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Steps step={2}/>
-                <Header title='Sellos'/>
+                <Header title='Stamps'/>
                 <form onSubmit={e => e.preventDefault()} className='mt-5'>
                     <TextInput type='text' placeholder='Sello 1 Autotanque 1'/>
                     <TextInput type='text' placeholder='Sello 2 Autotanque 1'/>

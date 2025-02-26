@@ -2,16 +2,13 @@ import {Container} from "../../components/Container.tsx";
 import {Header} from "../../components/Header.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
-import {CreateUserType} from "../../api/types/types.tsx";
+import {CreateUserType} from "../../api/types/user-types.ts";
 import {ChangeEvent, FormEvent, useState} from "react";
 import {createUser} from "../../api/users.ts";
 
 export const NewUser = () => {
 
-    const [userForm, setUserForm] = useState<CreateUserType>({
-        username: '',
-        password: '',
-    });
+    const [userForm, setUserForm] = useState<CreateUserType>({} as CreateUserType);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setUserForm({...userForm, [e.target.name]: e.target.value});

@@ -10,6 +10,7 @@ export const Pagination = ({currentPage = 1}: { currentPage: number }) => {
                     type="radio"
                     name="options" aria-label={String(page)}
                     checked={currentPage == page}
+                    readOnly={true}
                     key={page}
                 />
             ))}

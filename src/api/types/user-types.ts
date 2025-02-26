@@ -4,7 +4,7 @@ export enum StatusType {
 }
 
 export interface UserType {
-    id: number;
+    id: string;
     username: string;
     password: string;
     name?: string;
@@ -18,8 +18,4 @@ export interface UserType {
 
 export type CreateUserType = Omit<UserType, 'id' | 'createdAt' | 'updatedAt' | 'status'>;
 
-export interface TrazaType {
-    id: number;
-    name: string;
-    status: StatusType;
-}
+export type UpdateUserType = Omit<UserType, 'createdAt' | 'updatedAt'>;

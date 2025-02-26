@@ -2,12 +2,17 @@ import {Container} from "../../components/Container.tsx";
 import {Header} from "../../components/Header.tsx";
 import {SubHeader} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
-import {StatusType, TrazaType} from "../../api/types/types.tsx";
+import {StatusType} from "../../api/types/user-types.ts";
 import {Steps} from "../../components/Steps.tsx";
+import {useParams} from "react-router";
+import {TrackType} from "../../api/types/traza-types.ts";
 
-export const Traza = () => {
+export const Track = () => {
 
-    const documentList: TrazaType[] =
+    const params = useParams();
+    console.log(params)
+
+    const documentList: TrackType[] =
         [{
             id: 1,
             name: "Document 1",
@@ -26,7 +31,7 @@ export const Traza = () => {
         <div className='h-[100%] content-center mt-3'>
             <Container>
                 <Steps step={4}/>
-                <Header title='Traza'/>
+                <Header title='Track'/>
                 <SubHeader titles={['Nombre', 'QR Activo']}/>
                 <List isUser={false} elements={documentList}/>
             </Container>

@@ -6,7 +6,7 @@ export const Steps = ({step}: { step: number }) => {
         isAdmin = true;
     }
 
-    const path = isAdmin ? "/admin" : "/user";
+    const path: string = isAdmin ? "/admin" : "/user";
 
     return (
         <div className='pt-5 mb-4'>

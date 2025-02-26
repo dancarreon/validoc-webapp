@@ -1,6 +1,7 @@
-import {CreateUserType, UserType} from "./types/types.tsx";
+import {CreateUserType, UpdateUserType, UserType} from "./types/user-types.ts";
 
-const API_URL = "http://localhost:3000";
+//const API_URL = "http://localhost:3000";
+const API_URL = "https://capitoil-api.vercel.app";
 
 export const createUser = async (user?: CreateUserType): Promise<UserType> => {
     return await fetch(API_URL + '/users', {
@@ -9,7 +10,13 @@ export const createUser = async (user?: CreateUserType): Promise<UserType> => {
         headers: {
             "Content-Type": "application/json"
         }
-    }).then((response) => response.json());
+    }).then((response) => {
+        if (response.ok) {
+            return response.json();
+        }
+        console.log('An error occurred while creating user');
+        return null;
+    });
 };
 
 export const getAllUsers = async (): Promise<UserType[]> => {
@@ -18,5 +25,42 @@ export const getAllUsers = async (): Promise<UserType[]> => {
         headers: {
             "Content-Type": "application/json"
         }
-    }).then((response) => response.json());
+    }).then((response) => {
+        if (response.ok) {
+            return response.json();
+        }
+        console.log('An error occurred while getting all users');
+        return null;
+    });
 }
+
+export const getUser = async (userId: string): Promise<UserType> => {
+    return await fetch(API_URL + '/users/' + userId, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then((response) => {
+        if (response.ok) {
+            return response.json()
+        }
+        console.log('An error occurred while getting user');
+        return null;
+    });
+}
+
+export const updateUser = async (user: UpdateUserType): Promise<UserType> => {
+    return await fetch(API_URL + '/users/' + user.id, {
+        method: "PATCH",
+        body: JSON.stringify(user),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then((response) => {
+        if (response.ok) {
+            return response.json();
+        }
+        console.log('An error occurred while updating user');
+        return null;
+    });
+};
