@@ -31,9 +31,7 @@
     width: clamp(3rem, 30rem, 88%);
 }
 
-.show-alert {
-    float: left;
-    margin-top: 5rem;
+.fade-alert {
     animation: fadeinout 5s linear forwards;
 }
 

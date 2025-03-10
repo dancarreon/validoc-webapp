@@ -26,7 +26,7 @@ export const List = ({elements, isUser = false}: { elements: UserType[] | TrackT
 
     return (
         <>
-            {elements.length > 0 ? (
+            {elements && elements.length > 0 ? (
                 <ul className="list shadow-md w-[100%]">
                     {elements.map(element => (
                         <li className='list-row items-center rounded-none hover:bg-black cursor-pointer z-10'

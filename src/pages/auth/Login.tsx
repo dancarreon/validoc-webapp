@@ -24,7 +24,7 @@ export const Login = () => {
             <Container styles='m-auto pb-7'>
                 <Logo/>
                 <form action={submit}>
-                    <TextInput type={'text'} name='usuario' placeholder={'Usuario'}/>
+                    <TextInput name='usuario' placeholder={'Usuario'}/>
                     <TextInput type={'password'} name='password' placeholder={'Contraseña'}/>
                     <Button type='submit' label={'Ingresar'}/>
                 </form>

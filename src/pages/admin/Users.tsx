@@ -5,16 +5,42 @@ import {Container} from "../../components/Container.tsx";
 import {Pagination} from "../../components/Pagination.tsx";
 import {Search} from "../../components/Search.tsx";
 import {useEffect, useState} from "react";
-import {getAllUsers} from "../../api/users.ts";
+import {getAllUsers, getTotalUsers, PAGE_SIZE} from "../../api/users.ts";
 import {UserType} from "../../api/types/user-types.ts";
+import {Spinner} from "../../components/Spinner.tsx";
 
 export const Users = () => {
 
     const [userList, setUserList] = useState<UserType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalUsers, setTotalUsers] = useState(0);
+
+    const handleClick = () => {
+    }
 
     useEffect(() => {
-        getAllUsers().then((response) => setUserList(response));
-    }, [])
+        async function fetchAllUsers() {
+            const allUsers = await getAllUsers(currentPage);
+            if (allUsers) {
+                setUserList(allUsers);
+                setCurrentPage(0);
+            }
+
+            const totalUsers = await getTotalUsers();
+            if (totalUsers) {
+                setTotalUsers(totalUsers);
+            }
+        }
+
+        if (window.location.pathname.includes("page")) {
+            console.log(window.location.pathname);
+        }
+
+        fetchAllUsers().then(() => {
+            setIsLoading(false);
+        }).catch(console.error);
+    }, [currentPage])
 
     return (
         <div className='h-[100%] content-center'>
@@ -22,9 +48,13 @@ export const Users = () => {
             <Container styles='my-3'>
                 <Header title='Usuarios'/>
                 <SubHeader titles={['Nombre', 'Activo']}/>
-                <List isUser={true} elements={userList}/>
+                {isLoading ? (<Spinner/>) :
+                    <List isUser={true} elements={userList}/>}
             </Container>
-            <Pagination currentPage={2}/>
+            <Pagination currentPage={currentPage}
+                        pageSize={PAGE_SIZE}
+                        totalRecords={totalUsers}
+                        onClick={() => handleClick()}/>
         </div>
     )
 }

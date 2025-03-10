@@ -1,17 +1,26 @@
-export const Pagination = ({currentPage = 1}: { currentPage: number }) => {
+import {MouseEventHandler} from "react";
 
-    const pages = [1, 2, 3, 4, 5, 6];
+export const Pagination = ({currentPage, pageSize, totalRecords, onClick}: {
+    currentPage: number,
+    pageSize: number,
+    totalRecords: number,
+    onClick: MouseEventHandler,
+}) => {
+
+    const totalPages = Math.ceil(totalRecords / pageSize);
 
     return (
         <div className="join mb-3">
-            {pages.map((page: number, index: number) => (
+            {[...Array(totalPages).keys()].map((page: number, index: number) => (
                 <input
-                    className={'join-item btn btn-square ' + (index == 0 ? 'rounded-l-xl' : '') + (index == pages.length - 1 ? 'rounded-r-xl' : '')}
+                    className={'join-item btn btn-square ' + (index == 0 ? 'rounded-l-xl' : '') + (index == totalPages - 1 ? 'rounded-r-xl' : '')}
                     type="radio"
-                    name="options" aria-label={String(page)}
-                    checked={currentPage == page}
+                    name="options" aria-label={String(page + 1)}
+                    checked={(currentPage + 1) == (page + 1)}
                     readOnly={true}
                     key={page}
+                    value={page}
+                    onClick={onClick}
                 />
             ))}
         </div>

@@ -2,17 +2,23 @@ import {Header} from "../../components/Header.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {Container} from "../../components/Container.tsx";
-import {StatusType, UpdateUserType} from "../../api/types/user-types.ts";
-import {ChangeEvent, FormEvent, useEffect, useState} from "react";
+import {CreateUserType, StatusType, UpdateUserType, UserSchema} from "../../api/types/user-types.ts";
+import {ChangeEvent, useEffect, useState} from "react";
 import {getUser, updateUser} from "../../api/users.ts";
 import {useParams} from "react-router";
 import {CheckInput} from "../../components/CheckInput.tsx";
 import {Alert} from "../../components/Alert.tsx";
+import {Spinner} from "../../components/Spinner.tsx";
+import {Toast} from "../../components/Toast.tsx";
+import {SubmitHandler, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 export const UserInfo = () => {
 
     const [show, setShow] = useState(false)
+    const [showErrors, setShowErrors] = useState(false)
     const [message, setMessage] = useState('')
+    const [isLoading, setIsLoading] = useState(true);
 
     const params = useParams();
 
@@ -28,16 +34,20 @@ export const UserInfo = () => {
         status: StatusType.INACTIVE,
     } as UpdateUserType);
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.name === 'status') {
-            e.target.value = (e.target.checked ? StatusType.ACTIVE.valueOf() : StatusType.INACTIVE.valueOf());
-        }
-        setUser({...user, [e.target.name]: e.target.value});
-    }
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        formState: {errors},
+    } = useForm<UpdateUserType>({
+        resolver: zodResolver(UserSchema),
+    });
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const updatedUser = await updateUser(user);
+    let errorMap: (string | undefined)[] = [];
+
+    const onSubmit: SubmitHandler<UpdateUserType> = async () => {
+        setIsLoading(true);
+        const updatedUser = await updateUser(params.id!, user);
 
         if (updatedUser) {
             setShow(true);
@@ -45,55 +55,99 @@ export const UserInfo = () => {
             setTimeout(function () {
                 setShow(false);
             }, 5000);
+            setIsLoading(false);
+        } else {
+            setIsLoading(false);
+        }
+    };
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.name === 'status') {
+            e.target.value = (e.target.checked ? StatusType.ACTIVE.valueOf() : StatusType.INACTIVE.valueOf());
+        }
+        setUser({...user, [e.target.name]: e.target.value});
+    }
+
+    const handleClick = () => {
+        console.log(errors);
+        if (Object.keys(errors).length > 0) {
+            setShowErrors(true);
+            setTimeout(function () {
+                setShowErrors(false);
+                errorMap = [];
+            }, 5000);
+        }
+    }
+
+    if (errors) {
+        for (const key in errors) {
+            errorMap.push(errors[key as keyof CreateUserType]!.message);
         }
     }
 
     useEffect(() => {
         async function fetchUser() {
-            const response = await getUser(String(params.id));
-            if (response) {
-                setUser(response);
+            const user = await getUser(String(params.id));
+            if (user) {
+                setUser(user);
+                setIsLoading(false);
+
+                setValue('username', user.username);
+                setValue('password', user.password);
+                setValue('name', user.name);
+                setValue('lastName', user.lastName);
+                setValue('email', user.email);
+                setValue('phone', user.phone);
+                setValue('status', user.status);
             }
         }
 
         fetchUser().catch(console.error);
-
-    }, [params.id]);
+    }, [params.id, setValue]);
 
     const isActive: boolean = user.status === StatusType.ACTIVE.valueOf();
 
     return (
         <div className='h-[100%] content-center mt-3'>
-            {user.id !== '' ? (
+            {params.id !== '' ? (
                 <Container>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
                         <Header title={user.username}>
                             <CheckInput label='Activo' name='status' checked={isActive} onChange={handleChange}/>
                         </Header>
                         <div className='mt-5'>
-                            <TextInput type='text' name='username' placeholder='Usuario' onChange={handleChange}
-                                       value={user.username}/>
-                            <TextInput type='text' name='password' placeholder='Contraseña' onChange={handleChange}
-                                       value={user.password}/>
-                            <TextInput type='text' name='name' placeholder='Nombre del Usuario' onChange={handleChange}
-                                       value={user.name}/>
-                            <TextInput type='text' name='lastName' placeholder='Apellido del Usuario'
-                                       onChange={handleChange}
-                                       value={user.lastName}/>
-                            <TextInput type='text' name='email' placeholder='Email' onChange={handleChange}
-                                       value={user.email}/>
-                            <TextInput type='text' name='phone' placeholder='Teléfono' onChange={handleChange}
-                                       value={user.phone}/>
-                            <Button label='Guardar'/>
+                            <TextInput placeholder='Usuario' {...register('username')}/>
+                            <TextInput placeholder='Contraseña' {...register('password')}/>
+                            <TextInput placeholder='Nombre del Usuario' {...register('name')}/>
+                            <TextInput placeholder='Apellido del Usuario' {...register('lastName')}/>
+                            <TextInput placeholder='Email' {...register('email')}/>
+                            <TextInput placeholder='Teléfono' {...register('phone')}/>
+                            {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) :
+                                <Button label='Guardar' onClick={handleClick}/>}
                         </div>
                     </form>
                 </Container>
             ) : (
-                <Container>
-                    <Header title='No se encontró el usuario'/>
-                </Container>
+                isLoading
+                    ? (
+                        <Spinner styles='m-auto pb-10.5 grid'/>
+                    )
+                    : (
+                        <Container>
+                            <Header title='No se encontró el usuario'/>
+                        </Container>
+                    )
             )}
-            {show && <Alert message={message}/>}
+            <Toast>
+                {show && <Alert message={message}/>}
+            </Toast>
+            {showErrors && (
+                <Toast>
+                    {errorMap.length > 0 && errorMap.map((error, index) => (
+                        <Alert message={error!} key={index}/>
+                    ))}
+                </Toast>
+            )}
         </div>
     )
 }
