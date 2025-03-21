@@ -10,7 +10,7 @@ export interface SubHeaderProps {
 
 export const SubHeader = ({props, onClick}: {
     props: SubHeaderProps[],
-    onClick: (e: MouseEvent<HTMLButtonElement>) => void
+    onClick?: (e: MouseEvent<HTMLButtonElement>) => void
 }) => {
     return (
         <>

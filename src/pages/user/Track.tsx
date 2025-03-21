@@ -1,11 +1,16 @@
 import {Container} from "../../components/Container.tsx";
 import {Header} from "../../components/Header.tsx";
-import {SubHeader} from "../../components/SubHeader.tsx";
+import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {StatusType} from "../../api/types/user-types.ts";
 import {Steps} from "../../components/Steps.tsx";
 import {useParams} from "react-router";
 import {TrackType} from "../../api/types/traza-types.ts";
+
+const subheaderProps: SubHeaderProps[] = [
+    {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
+    {title: 'Status', dbProperty: 'status', sort: 'asc'}
+];
 
 export const Track = () => {
 
@@ -32,7 +37,7 @@ export const Track = () => {
             <Container>
                 <Steps step={4}/>
                 <Header title='Track'/>
-                <SubHeader titles={['Nombre', 'QR Activo']}/>
+                <SubHeader props={subheaderProps}/>
                 <List isUser={false} elements={documentList}/>
             </Container>
         </div>

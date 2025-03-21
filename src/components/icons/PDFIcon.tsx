@@ -21,8 +21,8 @@ export const PdfIcon = () => {
             </g>
             <defs>
                 <filter id="filter0_d_11_43" x="-3" y="-24" width="62" height="61.5909" filterUnits="userSpaceOnUse"
-                        color-interpolation-filters="sRGB">
-                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                        colorInterpolationFilters="sRGB">
+                    <feFlood floodOpacity="0" result="BackgroundImageFix"/>
                     <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
                                    result="hardAlpha"/>
                     <feOffset dx="2" dy="1"/>
@@ -32,17 +32,17 @@ export const PdfIcon = () => {
                     <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_11_43" result="shape"/>
                 </filter>
                 <linearGradient id="paint0_linear_11_43" x1="16" y1="0" x2="16" y2="35" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#FF7979"/>
-                    <stop offset="1" stop-color="#E85555"/>
+                    <stop stopColor="#FF7979"/>
+                    <stop offset="1" stopColor="#E85555"/>
                 </linearGradient>
                 <linearGradient id="paint1_linear_11_43" x1="16" y1="0" x2="16" y2="35" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#EC3113"/>
-                    <stop offset="1" stop-color="#E85567"/>
+                    <stop stopColor="#EC3113"/>
+                    <stop offset="1" stopColor="#E85567"/>
                 </linearGradient>
                 <linearGradient id="paint2_linear_11_43" x1="26" y1="0" x2="26" y2="11.5909"
                                 gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#831200"/>
-                    <stop offset="1" stop-color="#C02A3C"/>
+                    <stop stopColor="#831200"/>
+                    <stop offset="1" stopColor="#C02A3C"/>
                 </linearGradient>
             </defs>
         </svg>
