@@ -8,7 +8,7 @@ import {Alert} from "../../components/Alert.tsx";
 import {Spinner} from "../../components/Spinner.tsx";
 import {CheckInput} from "../../components/CheckInput.tsx";
 import {SubmitHandler, useForm} from "react-hook-form";
-import {createUser} from "../../api/users.ts";
+import {createUser} from "../../api/users-api.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Toast} from "../../components/Toast.tsx";
 
@@ -41,10 +41,8 @@ export const NewUser = () => {
             setTimeout(function () {
                 setShow(false);
             }, 5000);
-            setIsLoading(false);
-        } else {
-            setIsLoading(false);
         }
+        setIsLoading(false);
     };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -83,7 +81,7 @@ export const NewUser = () => {
                         <TextInput placeholder='Email' {...register('email')}/>
                         <TextInput placeholder='Teléfono' {...register('phone')}/>
                         {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) :
-                            <Button label='Guardar' onClick={handleClick}/>}
+                            <Button type={'submit'} label='Guardar' onClick={handleClick}/>}
                     </div>
                 </form>
             </Container>

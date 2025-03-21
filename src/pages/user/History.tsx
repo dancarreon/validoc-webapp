@@ -1,37 +1,74 @@
 import {Header} from "../../components/Header.tsx";
-import {SubHeader} from "../../components/SubHeader.tsx";
+import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
 import {StatusType} from "../../api/types/user-types.ts";
 import {TrackType} from "../../api/types/traza-types.ts";
+import {MouseEvent, useEffect, useState} from "react";
+import {Spinner} from "../../components/Spinner.tsx";
+
+const subheaderProps: SubHeaderProps[] = [
+    {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
+    {title: 'Status', dbProperty: 'status', sort: 'asc'}
+];
 
 export const History = () => {
 
-    const historyList = [];
+    const [historyList, setHistoryList] = useState<TrackType[][]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    for (let j = 0; j < 4; j++) {
+    const handleSort = async (e: MouseEvent<HTMLButtonElement>) => {
+        setIsLoading(true);
 
-        const documents: TrackType[] = [];
+        const orderBy = e.currentTarget.name;
 
-        for (let i = 0; i < Math.floor(Math.random() * 5); i++) {
-            const document: TrackType = {
-                id: i + 1,
-                name: "Documento " + (i + 1),
-                status: (i % 2 === 0 ? StatusType.ACTIVE : StatusType.INACTIVE),
-            };
-            documents.push(document);
-        }
+        subheaderProps.forEach((prop) => {
+            if (prop.dbProperty === orderBy) {
+                prop.sort = prop.sort === 'asc' ? 'desc' : 'asc';
+            }
+        });
 
-        historyList.push(documents);
+        setIsLoading(false);
     }
+
+    function getHistoryList(): void {
+        setIsLoading(true);
+
+        const historyList = [];
+        for (let j = 0; j < 4; j++) {
+
+            const documents: TrackType[] = [];
+
+            for (let i = 0; i < Math.floor(Math.random() * 5); i++) {
+                const document: TrackType = {
+                    id: i + 1,
+                    name: "Documento " + (i + 1),
+                    status: (i % 2 === 0 ? StatusType.ACTIVE : StatusType.INACTIVE),
+                };
+                documents.push(document);
+            }
+            historyList.push(documents);
+        }
+        setHistoryList(historyList);
+
+        setIsLoading(false);
+    }
+
+    useEffect(() => {
+        getHistoryList();
+    }, [])
 
     return (
         <div className='grid mt-3'>
             {historyList.map((history, index) => (
                 <Container key={index}>
                     <Header title={'Track ' + index}/>
-                    <SubHeader titles={['Nombre', 'QR Activo']}/>
-                    <List isUser={false} elements={history}/>
+                    <SubHeader props={subheaderProps} onClick={(event) => handleSort(event)}/>
+                    {
+                        isLoading
+                            ? <Spinner/>
+                            : <List isUser={false} elements={history}/>
+                    }
                 </Container>
             ))}
         </div>

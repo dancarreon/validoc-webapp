@@ -2,9 +2,9 @@ import {Header} from "../../components/Header.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {Container} from "../../components/Container.tsx";
-import {CreateUserType, StatusType, UpdateUserType, UserSchema} from "../../api/types/user-types.ts";
+import {StatusType, UpdateUserSchema, UpdateUserType} from "../../api/types/user-types.ts";
 import {ChangeEvent, useEffect, useState} from "react";
-import {getUser, updateUser} from "../../api/users.ts";
+import {getUser, updateUser} from "../../api/users-api.ts";
 import {useParams} from "react-router";
 import {CheckInput} from "../../components/CheckInput.tsx";
 import {Alert} from "../../components/Alert.tsx";
@@ -40,7 +40,7 @@ export const UserInfo = () => {
         setValue,
         formState: {errors},
     } = useForm<UpdateUserType>({
-        resolver: zodResolver(UserSchema),
+        resolver: zodResolver(UpdateUserSchema),
     });
 
     let errorMap: (string | undefined)[] = [];
@@ -79,9 +79,13 @@ export const UserInfo = () => {
         }
     }
 
+    const handleReset = () => {
+        console.log('test');
+    }
+
     if (errors) {
         for (const key in errors) {
-            errorMap.push(errors[key as keyof CreateUserType]!.message);
+            errorMap.push(errors[key as keyof UpdateUserType]!.message);
         }
     }
 
@@ -93,7 +97,6 @@ export const UserInfo = () => {
                 setIsLoading(false);
 
                 setValue('username', user.username);
-                setValue('password', user.password);
                 setValue('name', user.name);
                 setValue('lastName', user.lastName);
                 setValue('email', user.email);
@@ -117,13 +120,17 @@ export const UserInfo = () => {
                         </Header>
                         <div className='mt-5'>
                             <TextInput placeholder='Usuario' {...register('username')}/>
-                            <TextInput placeholder='Contraseña' {...register('password')}/>
                             <TextInput placeholder='Nombre del Usuario' {...register('name')}/>
                             <TextInput placeholder='Apellido del Usuario' {...register('lastName')}/>
                             <TextInput placeholder='Email' {...register('email')}/>
                             <TextInput placeholder='Teléfono' {...register('phone')}/>
-                            {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) :
-                                <Button label='Guardar' onClick={handleClick}/>}
+                            {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) : (
+                                <>
+                                    <Button type='submit' label='Guardar' onClick={handleClick}/>
+                                    <Button type='button' label='Reestablecer Constraseña'
+                                            styles={'bg-black text-md ml-6'} onClick={handleReset}/>
+                                </>
+                            )}
                         </div>
                     </form>
                 </Container>

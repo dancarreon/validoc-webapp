@@ -19,8 +19,12 @@ export const createUser = async (user?: CreateUserType): Promise<UserType> => {
     });
 };
 
-export const getAllUsers = async (page: number): Promise<UserType[]> => {
-    return await fetch(API_URL + `/users?size=${PAGE_SIZE}&page=${page}`, {
+export const getAllUsers = async (page?: number, size?: number, search?: string | undefined, orderAndSort?: object[]): Promise<UserType[]> => {
+
+    const URI = `/users`;
+    const queryParams: string = `?page=${page ? page : 0}&size=${size ? size : PAGE_SIZE}&search=${search ? search : ''}&orderAndSort=${orderAndSort ? encodeURIComponent(JSON.stringify(orderAndSort)) : ''}`;
+
+    return await fetch(API_URL + URI + queryParams, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -34,8 +38,8 @@ export const getAllUsers = async (page: number): Promise<UserType[]> => {
     });
 }
 
-export const getTotalUsers = async (): Promise<number> => {
-    return await fetch(API_URL + `/users/total`, {
+export const getTotalUsers = async (search?: string | undefined): Promise<number> => {
+    return await fetch(API_URL + `/users/total?search=${search ? search : ''}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"

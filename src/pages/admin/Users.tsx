@@ -1,13 +1,20 @@
 import {Header} from "../../components/Header.tsx";
-import {SubHeader} from "../../components/SubHeader.tsx";
+import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
 import {Pagination} from "../../components/Pagination.tsx";
 import {Search} from "../../components/Search.tsx";
-import {useEffect, useState} from "react";
-import {getAllUsers, getTotalUsers, PAGE_SIZE} from "../../api/users.ts";
+import {MouseEvent, useEffect, useState} from "react";
+import {getAllUsers, getTotalUsers, PAGE_SIZE} from "../../api/users-api.ts";
 import {UserType} from "../../api/types/user-types.ts";
 import {Spinner} from "../../components/Spinner.tsx";
+import {SubmitHandler, useForm} from "react-hook-form";
+import {SearchUserType} from "../../api/types/search-types.ts";
+
+const subheaderProps: SubHeaderProps[] = [
+    {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
+    {title: 'Status', dbProperty: 'status', sort: 'asc'}
+];
 
 export const Users = () => {
 
@@ -16,45 +23,119 @@ export const Users = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalUsers, setTotalUsers] = useState(0);
 
-    const handleClick = () => {
+    const {
+        register,
+        handleSubmit,
+        getValues,
+    } = useForm<SearchUserType>();
+
+    async function doSearch(pageToGo: number, searchString: string): Promise<void> {
+        setIsLoading(true);
+        const usersFound = await getAllUsers(pageToGo, PAGE_SIZE, searchString);
+        if (usersFound) {
+            setUserList(usersFound);
+        }
+
+        const totalUsersFound = await getTotalUsers(searchString);
+        if (totalUsersFound) {
+            setTotalUsers(totalUsersFound);
+            setCurrentPage(pageToGo);
+        }
+        setIsLoading(false);
+    }
+
+    const getOrderAndSort = (): object[] => {
+        const orderAndSort: object[] = [{}]
+        subheaderProps.forEach((prop, index) => {
+            orderAndSort[index] = {[prop.dbProperty]: prop.sort};
+        });
+        return orderAndSort;
+    }
+
+    async function fetchUsersCount(): Promise<void> {
+        const totalUsers = await getTotalUsers();
+        if (totalUsers) {
+            setTotalUsers(totalUsers);
+        }
+    }
+
+    async function fetchAllUsers(pageToGo: number) {
+        setIsLoading(true);
+
+        const orderAndSort = getOrderAndSort();
+
+        const allUsers = await getAllUsers(pageToGo, PAGE_SIZE, getValues('search'), orderAndSort);
+        if (allUsers) {
+            setUserList(allUsers);
+            setCurrentPage(pageToGo);
+        }
+
+        await fetchUsersCount();
+        setIsLoading(false);
+    }
+
+    const onSubmit: SubmitHandler<SearchUserType> = async (searchData: SearchUserType) => {
+        await doSearch(0, searchData.search);
+    }
+
+    const handlePagination = async (e: MouseEvent<HTMLInputElement>) => {
+        const pageToGo: number = Number(e.currentTarget.value);
+        if (currentPage !== pageToGo) {
+            // if search input is empty then proceed to move to the page requested
+            if (getValues('search') === '') {
+                await fetchAllUsers(pageToGo);
+            } else {
+                // else, re-do the search but with then page requested as query param
+                await doSearch(pageToGo, getValues('search'));
+            }
+        }
+    }
+
+    const handleSort = async (e: MouseEvent<HTMLButtonElement>) => {
+        setIsLoading(true);
+
+        const orderBy = e.currentTarget.name;
+        const orderAndSort = getOrderAndSort();
+
+        const allUsers = await getAllUsers(Number(currentPage), PAGE_SIZE, getValues('search'), orderAndSort);
+        if (allUsers) {
+            setUserList(allUsers);
+            subheaderProps.forEach((prop) => {
+                if (prop.dbProperty === orderBy) {
+                    prop.sort = prop.sort === 'asc' ? 'desc' : 'asc';
+                }
+            });
+        }
+
+        await fetchUsersCount();
+        setIsLoading(false);
     }
 
     useEffect(() => {
-        async function fetchAllUsers() {
-            const allUsers = await getAllUsers(currentPage);
-            if (allUsers) {
-                setUserList(allUsers);
-                setCurrentPage(0);
-            }
-
-            const totalUsers = await getTotalUsers();
-            if (totalUsers) {
-                setTotalUsers(totalUsers);
-            }
+        if (userList.length == 0) {
+            fetchAllUsers(0).catch(console.error);
         }
-
-        if (window.location.pathname.includes("page")) {
-            console.log(window.location.pathname);
-        }
-
-        fetchAllUsers().then(() => {
-            setIsLoading(false);
-        }).catch(console.error);
-    }, [currentPage])
+    }, [fetchAllUsers, userList.length])
 
     return (
         <div className='h-[100%] content-center'>
-            <Search/>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Search {...register('search')}/>
+            </form>
             <Container styles='my-3'>
                 <Header title='Usuarios'/>
-                <SubHeader titles={['Nombre', 'Activo']}/>
-                {isLoading ? (<Spinner/>) :
-                    <List isUser={true} elements={userList}/>}
+                <SubHeader props={subheaderProps}
+                           onClick={(event) => handleSort(event)}/>
+                {
+                    isLoading
+                        ? <Spinner/>
+                        : <List isUser={true} elements={userList}/>
+                }
             </Container>
             <Pagination currentPage={currentPage}
                         pageSize={PAGE_SIZE}
                         totalRecords={totalUsers}
-                        onClick={() => handleClick()}/>
+                        onClick={(event) => handlePagination(event)}/>
         </div>
     )
 }

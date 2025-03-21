@@ -20,7 +20,7 @@ export interface UserType {
 
 export type CreateUserType = Omit<UserType, 'id' | 'createdAt' | 'updatedAt'>;
 
-export type UpdateUserType = Omit<UserType, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateUserType = Omit<UserType, 'id' | 'password' | 'createdAt' | 'updatedAt'>;
 
 export const UserSchema: ZodType = z.object({
     username: z.string({
@@ -29,6 +29,21 @@ export const UserSchema: ZodType = z.object({
     password: z.string({
         required_error: "Contraseña es requerida",
     }).min(6, "Contraseña debe de tener al menos 6 caracteres"),
+    name: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.union([z.string().email({
+        message: "Email inválido",
+    }), z.literal('')]),
+    phone: z.union([z.number({
+        invalid_type_error: "Teléfono debe contener solo números",
+    }), z.literal('')]),
+    status: z.string().optional(),
+})
+
+export const UpdateUserSchema: ZodType = z.object({
+    username: z.string({
+        required_error: "Usuario es requerido",
+    }).min(6, "Usurio debe tener al menos 6 caracteres"),
     name: z.string().optional(),
     lastName: z.string().optional(),
     email: z.union([z.string().email({

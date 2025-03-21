@@ -1,10 +1,10 @@
-import {MouseEventHandler} from "react";
+import {MouseEvent} from "react";
 
 export const Pagination = ({currentPage, pageSize, totalRecords, onClick}: {
     currentPage: number,
     pageSize: number,
     totalRecords: number,
-    onClick: MouseEventHandler,
+    onClick: (e: MouseEvent<HTMLInputElement>) => void,
 }) => {
 
     const totalPages = Math.ceil(totalRecords / pageSize);
