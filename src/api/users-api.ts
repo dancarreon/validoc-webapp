@@ -39,7 +39,7 @@ export const getAllUsers = async (page?: number, size?: number, search?: string 
 }
 
 export const getTotalUsers = async (search?: string | undefined): Promise<number> => {
-    return await fetch(API_URL + `/users/total?search=${search ? search : ''}`, {
+    return await fetch(API_URL + `/users/totals${(search !== '' && search !== undefined) ? `?search=${search}` : ''}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
