@@ -1,19 +1,20 @@
-import {Header} from "../../components/Header.tsx";
-import {TextInput} from "../../components/TextInput.tsx";
-import {Button} from "../../components/Button.tsx";
-import {Container} from "../../components/Container.tsx";
-import {StatusType, UpdateUserSchema, UpdateUserType} from "../../api/types/user-types.ts";
+import {Header} from "../../../components/Header.tsx";
+import {TextInput} from "../../../components/TextInput.tsx";
+import {Button} from "../../../components/Button.tsx";
+import {Container} from "../../../components/Container.tsx";
 import {ChangeEvent, useEffect, useState} from "react";
-import {getUser, updateUser} from "../../api/users-api.ts";
 import {useParams} from "react-router";
-import {CheckInput} from "../../components/CheckInput.tsx";
-import {Alert} from "../../components/Alert.tsx";
-import {Spinner} from "../../components/Spinner.tsx";
-import {Toast} from "../../components/Toast.tsx";
+import {CheckInput} from "../../../components/CheckInput.tsx";
+import {Alert} from "../../../components/Alert.tsx";
+import {Spinner} from "../../../components/Spinner.tsx";
+import {Toast} from "../../../components/Toast.tsx";
 import {SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
+import {UpdateStateSchema, UpdateStateType} from "../../../api/types/state-types.ts";
+import {getState, updateState} from "../../../api/states-api.ts";
+import {StatusType} from "../../../api/types/user-types.ts";
 
-export const UserInfo = () => {
+export const StateInfo = () => {
 
     const [show, setShow] = useState(false)
     const [showErrors, setShowErrors] = useState(false)
@@ -22,36 +23,31 @@ export const UserInfo = () => {
 
     const params = useParams();
 
-    const [user, setUser] = useState<UpdateUserType>({
-        username: '',
-        email: '',
-        password: '',
-        id: '',
+    const [state, setState] = useState<UpdateStateType>({
         name: '',
-        phone: '',
-        phoneNumber: '',
-        lastName: '',
-        status: StatusType.INACTIVE,
-    } as UpdateUserType);
+        status: StatusType.ACTIVE,
+        createdAt: '',
+        updatedAt: '',
+    } as UpdateStateType);
 
     const {
         register,
         handleSubmit,
         setValue,
         formState: {errors},
-    } = useForm<UpdateUserType>({
-        resolver: zodResolver(UpdateUserSchema),
+    } = useForm<UpdateStateType>({
+        resolver: zodResolver(UpdateStateSchema),
     });
 
     let errorMap: (string | undefined)[] = [];
 
-    const onSubmit: SubmitHandler<UpdateUserType> = async () => {
+    const onSubmit: SubmitHandler<UpdateStateType> = async (state: UpdateStateType) => {
         setIsLoading(true);
-        const updatedUser = await updateUser(params.id!, user);
+        const updatedState = await updateState(params.id!, state);
 
-        if (updatedUser) {
+        if (updatedState) {
             setShow(true);
-            setMessage('Usuario actualizado exitosamente')
+            setMessage('Estado actualizado exitosamente')
             setTimeout(function () {
                 setShow(false);
             }, 5000);
@@ -65,11 +61,10 @@ export const UserInfo = () => {
         if (e.target.name === 'status') {
             e.target.value = (e.target.checked ? StatusType.ACTIVE.valueOf() : StatusType.INACTIVE.valueOf());
         }
-        setUser({...user, [e.target.name]: e.target.value});
+        setState({...state, [e.target.name]: e.target.value});
     }
 
     const handleClick = () => {
-        console.log(errors);
         if (Object.keys(errors).length > 0) {
             setShowErrors(true);
             setTimeout(function () {
@@ -79,57 +74,41 @@ export const UserInfo = () => {
         }
     }
 
-    const handleReset = () => {
-        console.log('test');
-    }
-
     if (errors) {
         for (const key in errors) {
-            errorMap.push(errors[key as keyof UpdateUserType]!.message);
+            errorMap.push(errors[key as keyof UpdateStateType]!.message);
         }
     }
 
     useEffect(() => {
         async function fetchUser() {
-            const user = await getUser(String(params.id));
-            if (user) {
-                setUser(user);
+            const state = await getState(String(params.id));
+            if (state) {
+                setState(state);
                 setIsLoading(false);
 
-                setValue('username', user.username);
-                setValue('name', user.name);
-                setValue('lastName', user.lastName);
-                setValue('email', user.email);
-                setValue('phone', user.phone);
-                setValue('status', user.status);
+                setValue('name', state.name);
+                setValue('status', state.status);
             }
         }
 
         fetchUser().catch(console.error);
     }, [params.id, setValue]);
 
-    const isActive: boolean = user.status === StatusType.ACTIVE.valueOf();
+    const isActive: boolean = state.status === StatusType.ACTIVE.valueOf();
 
     return (
         <div className='h-[100%] content-center mt-3'>
             {params.id !== '' ? (
                 <Container>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <Header title={user.username}>
+                        <Header title={state.name}>
                             <CheckInput label='Activo' name='status' checked={isActive} onChange={handleChange}/>
                         </Header>
                         <div className='mt-5'>
-                            <TextInput placeholder='Usuario' {...register('username')}/>
-                            <TextInput placeholder='Nombre del Usuario' {...register('name')}/>
-                            <TextInput placeholder='Apellido del Usuario' {...register('lastName')}/>
-                            <TextInput placeholder='Email' {...register('email')}/>
-                            <TextInput placeholder='Teléfono' {...register('phone')}/>
+                            <TextInput placeholder='Nombre' {...register('name')}/>
                             {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) : (
-                                <>
-                                    <Button type='submit' label='Guardar' onClick={handleClick}/>
-                                    <Button type='button' label='Reestablecer Constraseña'
-                                            styles={'bg-black text-md ml-6'} onClick={handleReset}/>
-                                </>
+                                <Button type='submit' label='Guardar' onClick={handleClick}/>
                             )}
                         </div>
                     </form>
@@ -141,7 +120,7 @@ export const UserInfo = () => {
                     )
                     : (
                         <Container>
-                            <Header title='No se encontró el usuario'/>
+                            <Header title='No se encontró el Estado'/>
                         </Container>
                     )
             )}

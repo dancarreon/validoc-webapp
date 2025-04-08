@@ -1,3 +1,3 @@
-export interface SearchUserType {
+export interface SearchType {
     search: string;
 }

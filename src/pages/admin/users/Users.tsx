@@ -1,15 +1,16 @@
-import {Header} from "../../components/Header.tsx";
-import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
-import {List} from "../../components/List.tsx";
-import {Container} from "../../components/Container.tsx";
-import {Pagination} from "../../components/Pagination.tsx";
-import {Search} from "../../components/Search.tsx";
+import {Header} from "../../../components/Header.tsx";
+import {SubHeader, SubHeaderProps} from "../../../components/SubHeader.tsx";
+import {List} from "../../../components/List.tsx";
+import {Container} from "../../../components/Container.tsx";
+import {Pagination} from "../../../components/Pagination.tsx";
+import {Search} from "../../../components/Search.tsx";
 import {MouseEvent, useEffect, useState} from "react";
-import {getAllUsers, getTotalUsers, PAGE_SIZE} from "../../api/users-api.ts";
-import {UserType} from "../../api/types/user-types.ts";
-import {Spinner} from "../../components/Spinner.tsx";
+import {getAllUsers, getTotalUsers, PAGE_SIZE} from "../../../api/users-api.ts";
+import {UserType} from "../../../api/types/user-types.ts";
+import {Spinner} from "../../../components/Spinner.tsx";
 import {SubmitHandler, useForm} from "react-hook-form";
-import {SearchUserType} from "../../api/types/search-types.ts";
+import {SearchType} from "../../../api/types/search-types.ts";
+import {getOrderAndSort} from "../../utils/utils.ts";
 
 const subheaderProps: SubHeaderProps[] = [
     {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
@@ -27,7 +28,7 @@ export const Users = () => {
         register,
         handleSubmit,
         getValues,
-    } = useForm<SearchUserType>();
+    } = useForm<SearchType>();
 
     async function doSearch(pageToGo: number, searchString: string): Promise<void> {
         setIsLoading(true);
@@ -44,14 +45,6 @@ export const Users = () => {
         setIsLoading(false);
     }
 
-    const getOrderAndSort = (): object[] => {
-        const orderAndSort: object[] = [{}]
-        subheaderProps.forEach((prop, index) => {
-            orderAndSort[index] = {[prop.dbProperty]: prop.sort};
-        });
-        return orderAndSort;
-    }
-
     async function fetchUsersCount(): Promise<void> {
         const totalUsers = await getTotalUsers();
         if (totalUsers) {
@@ -62,7 +55,7 @@ export const Users = () => {
     async function fetchAllUsers(pageToGo: number) {
         setIsLoading(true);
 
-        const orderAndSort = getOrderAndSort();
+        const orderAndSort = getOrderAndSort(subheaderProps);
 
         const allUsers = await getAllUsers(pageToGo, PAGE_SIZE, getValues('search'), orderAndSort);
         if (allUsers) {
@@ -74,7 +67,7 @@ export const Users = () => {
         setIsLoading(false);
     }
 
-    const onSubmit: SubmitHandler<SearchUserType> = async (searchData: SearchUserType) => {
+    const onSubmit: SubmitHandler<SearchType> = async (searchData: SearchType) => {
         await doSearch(0, searchData.search);
     }
 
@@ -95,7 +88,7 @@ export const Users = () => {
         setIsLoading(true);
 
         const orderBy = e.currentTarget.name;
-        const orderAndSort = getOrderAndSort();
+        const orderAndSort = getOrderAndSort(subheaderProps);
 
         const allUsers = await getAllUsers(Number(currentPage), PAGE_SIZE, getValues('search'), orderAndSort);
         if (allUsers) {
@@ -115,7 +108,7 @@ export const Users = () => {
         if (userList.length == 0) {
             fetchAllUsers(0).catch(console.error);
         }
-    }, [fetchAllUsers, userList.length])
+    }, [])
 
     return (
         <div className='h-[100%] content-center'>
@@ -129,7 +122,7 @@ export const Users = () => {
                 {
                     isLoading
                         ? <Spinner/>
-                        : <List isUser={true} elements={userList}/>
+                        : <List isUser={true} elements={{model: 'user', elements: userList}}/>
                 }
             </Container>
             <Pagination currentPage={currentPage}

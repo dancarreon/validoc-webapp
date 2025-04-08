@@ -4,8 +4,8 @@ import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {StatusType} from "../../api/types/user-types.ts";
 import {Steps} from "../../components/Steps.tsx";
-import {useParams} from "react-router";
 import {TrackType} from "../../api/types/traza-types.ts";
+import {useEffect, useState} from "react";
 
 const subheaderProps: SubHeaderProps[] = [
     {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
@@ -14,11 +14,10 @@ const subheaderProps: SubHeaderProps[] = [
 
 export const Track = () => {
 
-    const params = useParams();
-    console.log(params)
+    const [documentList, setDocumentList] = useState<TrackType[]>([]);
 
-    const documentList: TrackType[] =
-        [{
+    useEffect(() => {
+        setDocumentList([{
             id: 1,
             name: "Document 1",
             status: StatusType.INACTIVE,
@@ -30,7 +29,8 @@ export const Track = () => {
             id: 3,
             name: "Document 3",
             status: StatusType.INACTIVE,
-        }]
+        }])
+    }, [])
 
     return (
         <div className='h-[100%] content-center mt-3'>
@@ -38,7 +38,7 @@ export const Track = () => {
                 <Steps step={4}/>
                 <Header title='Track'/>
                 <SubHeader props={subheaderProps}/>
-                <List isUser={false} elements={documentList}/>
+                <List isUser={false} elements={{model: 'track', elements: documentList}}/>
             </Container>
         </div>
     )

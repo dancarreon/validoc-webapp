@@ -1,16 +1,16 @@
-import {Container} from "../../components/Container.tsx";
-import {Header} from "../../components/Header.tsx";
-import {TextInput} from "../../components/TextInput.tsx";
-import {Button} from "../../components/Button.tsx";
-import {UserSchema, CreateUserType, StatusType, UserType} from "../../api/types/user-types.ts";
+import {Container} from "../../../components/Container.tsx";
+import {Header} from "../../../components/Header.tsx";
+import {TextInput} from "../../../components/TextInput.tsx";
+import {Button} from "../../../components/Button.tsx";
+import {UserSchema, CreateUserType, StatusType, UserType} from "../../../api/types/user-types.ts";
 import {ChangeEvent, useState} from "react";
-import {Alert} from "../../components/Alert.tsx";
-import {Spinner} from "../../components/Spinner.tsx";
-import {CheckInput} from "../../components/CheckInput.tsx";
+import {Alert} from "../../../components/Alert.tsx";
+import {Spinner} from "../../../components/Spinner.tsx";
+import {CheckInput} from "../../../components/CheckInput.tsx";
 import {SubmitHandler, useForm} from "react-hook-form";
-import {createUser} from "../../api/users-api.ts";
+import {createUser} from "../../../api/users-api.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {Toast} from "../../components/Toast.tsx";
+import {Toast} from "../../../components/Toast.tsx";
 
 export const NewUser = () => {
 

@@ -67,7 +67,7 @@ export const History = () => {
                     {
                         isLoading
                             ? <Spinner/>
-                            : <List isUser={false} elements={history}/>
+                            : <List isUser={false} elements={{model: 'track', elements: history}}/>
                     }
                 </Container>
             ))}
