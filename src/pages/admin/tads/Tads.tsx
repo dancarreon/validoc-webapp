@@ -101,7 +101,7 @@ export const Tads = () => {
         if (tadList.length === 0) {
             fetchAllTads(0).catch(console.error);
         }
-    }, [fetchAllTads, tadList.length]);
+    }, []);
 
     return (
         <div className='h-[100%] content-center'>
