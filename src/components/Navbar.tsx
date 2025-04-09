@@ -30,6 +30,8 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
                                 </li>
                                 {isAdmin && (<li><a href={'/' + prefix + '/usuarios'}>Usuarios</a></li>)}
                                 {isAdmin && (<li><a href={'/' + prefix + '/nuevo-usuario'}>Nuevo Usuario</a></li>)}
+                                {isAdmin && (<li><a href={'/' + prefix + '/tads'}>TAD</a></li>)}
+                                {isAdmin && (<li><a href={'/' + prefix + '/claves'}>Claves</a></li>)}
                                 <li className='bg-[#EC3113]'>
                                     <a href={'/'}>Salir</a>
                                 </li>
