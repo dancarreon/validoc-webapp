@@ -6,6 +6,7 @@ import {StatusType} from "../../api/types/user-types.ts";
 import {Steps} from "../../components/Steps.tsx";
 import {TrackType} from "../../api/types/traza-types.ts";
 import {useEffect, useState} from "react";
+import {ModelType} from "../../api/types/model-types.ts";
 
 const subheaderProps: SubHeaderProps[] = [
     {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
@@ -38,7 +39,7 @@ export const Track = () => {
                 <Steps step={4}/>
                 <Header title='Track'/>
                 <SubHeader props={subheaderProps}/>
-                <List isUser={false} elements={{model: Model.TRACK, elements: documentList}}/>
+                <List isUser={false} elements={{model: ModelType.TRACK, elements: documentList}}/>
             </Container>
         </div>
     )
