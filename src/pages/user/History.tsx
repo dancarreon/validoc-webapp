@@ -6,6 +6,7 @@ import {StatusType} from "../../api/types/user-types.ts";
 import {TrackType} from "../../api/types/traza-types.ts";
 import {MouseEvent, useEffect, useState} from "react";
 import {Spinner} from "../../components/Spinner.tsx";
+import {ModelType} from "../../api/types/model-types.ts";
 
 const subheaderProps: SubHeaderProps[] = [
     {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
@@ -67,7 +68,7 @@ export const History = () => {
                     {
                         isLoading
                             ? <Spinner/>
-                            : <List isUser={false} elements={{model: 'track', elements: history}}/>
+                            : <List isUser={false} elements={{model: ModelType.TRACK, elements: history}}/>
                     }
                 </Container>
             ))}

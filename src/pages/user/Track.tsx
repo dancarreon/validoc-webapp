@@ -38,7 +38,7 @@ export const Track = () => {
                 <Steps step={4}/>
                 <Header title='Track'/>
                 <SubHeader props={subheaderProps}/>
-                <List isUser={false} elements={{model: 'track', elements: documentList}}/>
+                <List isUser={false} elements={{model: Model.TRACK, elements: documentList}}/>
             </Container>
         </div>
     )
