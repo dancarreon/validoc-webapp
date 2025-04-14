@@ -99,7 +99,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
         }
 
         fetchUser().catch(console.error);
-    }, [params.id, setValue]);
+    }, [params.id, props, setValue]);
 
     let isActive: boolean = false;
     if ("status" in record) {

@@ -1,4 +1,3 @@
-import React from 'react'
 import {PageListTemplate, PageProps} from "../../templates/PageListTemplate.tsx";
 import {ListType} from "../../../components/List.tsx";
 import {UserType} from "../../../api/types/user-types.ts";

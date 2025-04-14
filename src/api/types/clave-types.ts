@@ -15,7 +15,7 @@ export class Clave implements Omit<ClaveType, 'id' | 'createdAt' | 'updatedAt'> 
         Object.assign(this, partial);
     }
 
-    clave!: string;
+    clave!: number;
     name!: string
     status!: StatusType;
 }
