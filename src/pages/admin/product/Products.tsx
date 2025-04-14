@@ -1,11 +1,11 @@
 import {PageListTemplate, PageProps} from "../../templates/PageListTemplate.tsx";
 import {ListType} from "../../../components/List.tsx";
-import {UserType} from "../../../api/types/user-types.ts";
 import {ModelType} from "../../../api/types/model-types.ts";
 import {SubHeaderProps} from "../../../components/SubHeader.tsx";
 import {getAllProducts, getTotalProducts} from "../../../api/product-api.ts";
+import {ProductType} from "../../../api/types/product-types.ts";
 
-const listType: ListType<UserType> = {model: ModelType.PRODUCT, elements: []};
+const listType: ListType<ProductType> = {model: ModelType.PRODUCT, elements: []};
 
 const pageProps = {
     title: 'Productos',
@@ -19,7 +19,7 @@ const pageProps = {
     searchApi: getAllProducts,
     getTotalApi: getTotalProducts,
     getAllApi: getAllProducts,
-} as PageProps<UserType>;
+} as PageProps<ProductType>;
 
 export const Products = () => {
     return (
