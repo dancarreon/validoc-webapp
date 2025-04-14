@@ -10,6 +10,16 @@ export interface TadType {
     updatedAt: Date;
 }
 
+export class Tad implements Omit<TadType, 'id' | 'createdAt' | 'updatedAt'> {
+    constructor(partial: Partial<TadType>) {
+        Object.assign(this, partial);
+    }
+
+    ciudad!: string;
+    estadoId!: string
+    status!: StatusType;
+}
+
 export type CreateTadType = Omit<TadType, 'id' | 'createdAt' | 'updatedAt'>;
 
 export type UpdateTadType = Omit<TadType, 'id' | 'createdAt' | 'updatedAt'>;

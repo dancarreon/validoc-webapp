@@ -26,12 +26,15 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
                                     <a href={'/' + prefix + '/datos-nacional'}>Nueva Traza</a>
                                 </li>
                                 <li>
-                                    <a href={'/' + prefix + '/historial'}>Historial</a>
+                                    <a href={'/' + prefix + '/historial'}>Trazas</a>
                                 </li>
+                                <hr/>
                                 {isAdmin && (<li><a href={'/' + prefix + '/usuarios'}>Usuarios</a></li>)}
-                                {isAdmin && (<li><a href={'/' + prefix + '/nuevo-usuario'}>Nuevo Usuario</a></li>)}
-                                {isAdmin && (<li><a href={'/' + prefix + '/tads'}>TAD</a></li>)}
+                                {isAdmin && (<li><a href={'/' + prefix + '/tads'}>TADs</a></li>)}
                                 {isAdmin && (<li><a href={'/' + prefix + '/claves'}>Claves</a></li>)}
+                                {isAdmin && (<li><a href={'/' + prefix + '/estados'}>Estados</a></li>)}
+                                {isAdmin && (<li><a href={'/' + prefix + '/products'}>Productos</a></li>)}
+                                {isAdmin && (<li><a href={'/' + prefix + '/razones'}>Razones</a></li>)}
                                 <li className='bg-[#EC3113]'>
                                     <a href={'/'}>Salir</a>
                                 </li>

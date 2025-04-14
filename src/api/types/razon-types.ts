@@ -9,6 +9,14 @@ export interface RazonType {
     updatedAt: Date;
 }
 
+export class Razon implements Omit<RazonType, 'id' | 'createdAt' | 'updatedAt'> {
+    constructor(partial: Partial<RazonType>) {
+        Object.assign(this, partial);
+    }
+    name!: string;
+    status!: StatusType;
+}
+
 export type CreateRazonType = Omit<RazonType, 'id' | 'createdAt' | 'updatedAt'>;
 
 export type UpdateRazonType = Omit<RazonType, 'id' | 'createdAt' | 'updatedAt'>;

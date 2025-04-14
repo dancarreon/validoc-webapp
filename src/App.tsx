@@ -21,6 +21,11 @@ import {ClaveInfo} from "./pages/admin/claves/ClaveInfo.tsx";
 import {Razones} from "./pages/admin/razon/Razones.tsx";
 import {RazonInfo} from "./pages/admin/razon/RazonInfo.tsx";
 import {NewRazon} from "./pages/admin/razon/NewRazon.tsx";
+import {Products} from "./pages/admin/product/Products.tsx";
+import {ProductInfo} from "./pages/admin/product/ProductInfo.tsx";
+import {NewProduct} from "./pages/admin/product/NewProduct.tsx";
+import {NewState} from "./pages/admin/states/NewState.tsx";
+import {NewTad} from "./pages/admin/tads/NewTad.tsx";
 
 const App = () => {
     return (
@@ -46,8 +51,28 @@ const App = () => {
                     <Route index element={<MenuAdmin/>}/>
                     {/*Admin Users*/}
                     <Route path="usuarios" element={<Users/>}/>
-                    <Route path="nuevo-usuario" element={<NewUser/>}/>
                     <Route path="usuario/:id" element={<UserInfo/>}/>
+                    <Route path="nuevo-usuario" element={<NewUser/>}/>
+                    {/*Admin States*/}
+                    <Route path="estados" element={<States/>}/>
+                    <Route path="estados/:id" element={<StateInfo/>}/>
+                    <Route path="nuevo-estado" element={<NewState/>}/>
+                    {/*Admin Tads*/}
+                    <Route path="tads" element={<Tads/>}/>
+                    <Route path="tads/:id" element={<TadInfo/>}/>
+                    <Route path="nuevo-tad" element={<NewTad/>}/>
+                    {/*Admin Claves*/}
+                    <Route path="claves" element={<Claves/>}/>
+                    <Route path="claves/:id" element={<ClaveInfo/>}/>
+                    <Route path="nueva-clave" element={<NewTad/>}/>
+                    {/*Admin Razones*/}
+                    <Route path="razones" element={<Razones/>}/>
+                    <Route path="razones/:id" element={<RazonInfo/>}/>
+                    <Route path="nueva-razon" element={<NewRazon/>}/>
+                    {/*Admin Prodcuts*/}
+                    <Route path="products" element={<Products/>}/>
+                    <Route path="products/:id" element={<ProductInfo/>}/>
+                    <Route path="nuevo-producto" element={<NewProduct/>}/>
                     {/*Admin History/Tracks/Documents*/}
                     <Route path="historial" element={<History/>}/>
                     <Route path="traza" element={<Track/>}/>
@@ -55,19 +80,6 @@ const App = () => {
                     <Route path="datos-nacional" element={<NationalData/>}/>
                     <Route path="sellos" element={<Stamps/>}/>
                     <Route path="folios" element={<Folios/>}/>
-                    {/*Admin States*/}
-                    <Route path="estados" element={<States/>}/>
-                    <Route path="estados/:id" element={<StateInfo/>}/>
-                    {/*Admin Tads*/}
-                    <Route path="tads" element={<Tads/>}/>
-                    <Route path="tads/:id" element={<TadInfo/>}/>
-                    {/*Admin Claves*/}
-                    <Route path="claves" element={<Claves/>}/>
-                    <Route path="claves/:id" element={<ClaveInfo/>}/>
-                    {/*Admin Razones*/}
-                    <Route path="razones" element={<Razones/>}/>
-                    <Route path="razones/:id" element={<RazonInfo/>}/>
-                    <Route path="nueva-razon" element={<NewRazon/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>

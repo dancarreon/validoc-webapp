@@ -18,6 +18,20 @@ export interface UserType {
     status: StatusType;
 }
 
+export class User implements Omit<UserType, 'id' | 'createdAt' | 'updatedAt'> {
+    constructor(partial: Partial<UserType>) {
+        Object.assign(this, partial);
+    }
+
+    username!: string;
+    password!: string;
+    name!: string;
+    lastName!: string;
+    email!: string;
+    phone!: string;
+    status!: StatusType;
+}
+
 export type CreateUserType = Omit<UserType, 'id' | 'createdAt' | 'updatedAt'>;
 
 export type UpdateUserType = Omit<UserType, 'id' | 'password' | 'createdAt' | 'updatedAt'>;

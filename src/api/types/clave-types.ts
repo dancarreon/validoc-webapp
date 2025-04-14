@@ -10,11 +10,21 @@ export interface ClaveType {
     updatedAt: Date;
 }
 
+export class Clave implements Omit<ClaveType, 'id' | 'createdAt' | 'updatedAt'> {
+    constructor(partial: Partial<ClaveType>) {
+        Object.assign(this, partial);
+    }
+
+    clave!: string;
+    name!: string
+    status!: StatusType;
+}
+
 export type CreateClaveType = Omit<ClaveType, 'id' | 'createdAt' | 'updatedAt'>;
 
 export type UpdateClaveType = Omit<ClaveType, 'id' | 'createdAt' | 'updatedAt'>;
 
-export const ClaveSchema: ZodType = z.object({
+export const CreateClaveSchema: ZodType = z.object({
     name: z.string({
         required_error: "Nombre es requerido",
     }).min(6, "Nombre debe tener al menos 6 caracteres"),

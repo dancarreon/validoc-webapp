@@ -9,6 +9,15 @@ export interface StateType {
     updatedAt: Date;
 }
 
+export class State implements Omit<StateType, 'id' | 'createdAt' | 'updatedAt'> {
+    constructor(partial: Partial<StateType>) {
+        Object.assign(this, partial);
+    }
+
+    name!: string;
+    status!: StatusType;
+}
+
 export type CreateStateType = Omit<StateType, 'id' | 'createdAt' | 'updatedAt'>;
 
 export type UpdateStateType = Omit<StateType, 'id' | 'createdAt' | 'updatedAt'>;

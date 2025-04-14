@@ -5,4 +5,5 @@ export enum ModelType {
     TAD = 'tad',
     CLAVE = 'clave',
     RAZON = 'razon',
+    PRODUCT = 'product',
 }

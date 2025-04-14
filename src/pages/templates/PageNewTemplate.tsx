@@ -10,11 +10,13 @@ import {Path, SubmitHandler, useForm} from "react-hook-form";
 import {ChangeEvent, useState} from "react";
 import {StatusType} from "../../api/types/user-types.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {record, ZodType} from "zod";
+import {ZodType} from "zod";
 
 export type NewProps<T> = {
+    title: string;
     createRecord: (record: T) => Promise<T>;
     createZodSchema: ZodType;
+    objectInstance: object;
 };
 
 export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> }) => {
@@ -71,27 +73,16 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
         }
     }
 
-    /* TODO: find how to extract properties from Interface or Type
-    type properties = Array<keyof T>;
-    const properties: properties = Object.keys(record) as properties;
-
-    const keys: string[] = Object.keys(newRecord);
-    for (const key of keys) {
-        console.log(newRecord);
-        console.log(key);
-    }
-    */
-
     return (
         <div className='h-[100%] content-center mt-3'>
             <Container>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <Header title='Nuevo Usuario'>
+                    <Header title={props.title}>
                         <CheckInput label='Activo' name='status' onChange={handleChange}/>
                     </Header>
                     <div className='mt-5'>
                         {
-                            Object.keys(record).map((key) => {
+                            Object.keys(props.objectInstance).map((key) => {
                                 if (key !== 'status') {
                                     return (
                                         <TextInput key={key} placeholder={key} {...register(key as Path<T>)}/>
