@@ -5,13 +5,14 @@ import {useNavigate} from "react-router";
 import {TrackType} from "../api/types/traza-types.ts";
 import {StateType} from "../api/types/state-types.ts";
 import {TadType} from "../api/types/tad-types.ts";
+import {ModelType} from "../api/types/model-types.ts";
 
-export type ListType = {
-    model: string;
-    elements: UserType[] | TrackType[] | StateType[] | TadType[];
+export type ListType<T> = {
+    model: ModelType;
+    elements: UserType[] | TrackType[] | StateType[] | TadType[] | T[];
 }
 
-export const List = ({elements, isUser = false}: { elements: ListType, isUser: boolean }) => {
+export const List = <T extends object>({elements, isUser = false}: { elements: ListType<T>, isUser: boolean }) => {
 
     const navigate = useNavigate();
 
@@ -21,23 +22,28 @@ export const List = ({elements, isUser = false}: { elements: ListType, isUser: b
         isAdmin = true;
     }
 
-    const handleClick = (model: string, element: UserType | TrackType | StateType | TadType) => {
+    const handleClick = (model: string, element: UserType | TrackType | StateType | TadType | T) => {
         const path: string = isAdmin ? "/admin" : "/user";
 
-        if (model === 'user') {
-            navigate(path + '/usuario/' + element.id);
-        } else if (model === 'track') {
-            navigate(path + '/traza/' + element.id);
-        } else if (model === 'states') {
-            navigate(path + '/estados/' + element.id);
-        } else if (model === 'tad') {
-            navigate(path + '/tads/' + element.id);
-        } else if (model === 'clave') {
-            navigate(path + '/claves/' + element.id);
+        if ("id" in element) {
+            if (model === ModelType.USER) {
+                navigate(path + '/usuario/' + element.id);
+            } else if (model === ModelType.TRACK) {
+                navigate(path + '/traza/' + element.id);
+            } else if (model === ModelType.STATES) {
+                navigate(path + '/estados/' + element.id);
+            } else if (model === ModelType.TAD) {
+                navigate(path + '/tads/' + element.id);
+            } else if (model === ModelType.CLAVE) {
+                navigate(path + '/claves/' + element.id);
+            } else if (model === ModelType.RAZON) {
+                navigate(path + '/razones/' + element.id);
+            }
+
         }
     }
 
-    function getLabel(model: string, element: UserType | TrackType | StateType | TadType): string | undefined {
+    function getLabel(model: string, element: UserType | TrackType | StateType | TadType | T): string | undefined {
         if (model === 'user' && "username" in element) {
             return element.username
         } else if (model === 'tad' && "ciudad" in element) {
@@ -53,7 +59,7 @@ export const List = ({elements, isUser = false}: { elements: ListType, isUser: b
                 <ul className="list shadow-md w-[100%]">
                     {elements.elements.map(element => (
                         <li className='list-row items-center rounded-none hover:bg-black cursor-pointer z-10'
-                            key={element.id}
+                            key={"id" in element ? element.id : ''}
                             onClick={() => handleClick(elements.model, element)}>
                             {isUser ? (<UserListIcon/>) : <PdfIcon/>}
                             <div className='text-m content-center'>
@@ -64,7 +70,7 @@ export const List = ({elements, isUser = false}: { elements: ListType, isUser: b
                             </div>
                             <input type="checkbox"
                                    readOnly={true}
-                                   checked={element.status === StatusType.ACTIVE.valueOf()}
+                                   checked={"status" in element ? element.status === StatusType.ACTIVE.valueOf() : undefined}
                                    className='checkbox border-white checkbox-md checked:text-[#EC3113]'/>
                         </li>
                     ))}

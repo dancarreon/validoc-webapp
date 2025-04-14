@@ -1,7 +1,7 @@
 import {MouseEventHandler} from "react";
 
 export const Button = ({type, label, styles, onClick}: {
-    type?: 'submit' | 'button' | 'reset' | undefined,
+    type?: 'submit' | 'button' | 'reset' |undefined,
     label: string,
     styles?: string
     onClick?: MouseEventHandler,

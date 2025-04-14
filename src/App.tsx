@@ -18,6 +18,9 @@ import {Tads} from "./pages/admin/tads/Tads.tsx";
 import {TadInfo} from "./pages/admin/tads/TadInfo.tsx";
 import {Claves} from "./pages/admin/claves/Claves.tsx";
 import {ClaveInfo} from "./pages/admin/claves/ClaveInfo.tsx";
+import {Razones} from "./pages/admin/razon/Razones.tsx";
+import {RazonInfo} from "./pages/admin/razon/RazonInfo.tsx";
+import {NewRazon} from "./pages/admin/razon/NewRazon.tsx";
 
 const App = () => {
     return (
@@ -61,6 +64,10 @@ const App = () => {
                     {/*Admin Claves*/}
                     <Route path="claves" element={<Claves/>}/>
                     <Route path="claves/:id" element={<ClaveInfo/>}/>
+                    {/*Admin Razones*/}
+                    <Route path="razones" element={<Razones/>}/>
+                    <Route path="razones/:id" element={<RazonInfo/>}/>
+                    <Route path="nueva-razon" element={<NewRazon/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>
