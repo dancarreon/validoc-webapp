@@ -16,7 +16,7 @@ export class Tad implements Omit<TadType, 'id' | 'createdAt' | 'updatedAt'> {
     }
 
     ciudad!: string;
-    estadoId!: string
+    estadoId!: string;
     status!: StatusType;
 }
 
@@ -28,10 +28,12 @@ export const TadSchema: ZodType = z.object({
     ciudad: z.string({
         required_error: "Ciudad es requerida",
     }).min(6, "Nombre debe tener al menos 6 caracteres"),
+    estadoId: z.string(),
 })
 
 export const UpdateTadSchema: ZodType = z.object({
     ciudad: z.string({
         required_error: "Ciudad es requerida",
     }).min(6, "Ciudad debe tener al menos 6 caracteres"),
+    estadoId: z.string(),
 })

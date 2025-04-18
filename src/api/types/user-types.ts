@@ -48,7 +48,7 @@ export const UserSchema: ZodType = z.object({
     email: z.union([z.string().email({
         message: "Email inválido",
     }), z.literal('')]),
-    phone: z.union([z.number({
+    phone: z.union([z.string({
         invalid_type_error: "Teléfono debe contener solo números",
     }), z.literal('')]),
     status: z.string().optional(),
@@ -63,7 +63,7 @@ export const UpdateUserSchema: ZodType = z.object({
     email: z.union([z.string().email({
         message: "Email inválido",
     }), z.literal('')]),
-    phone: z.union([z.number({
+    phone: z.union([z.string({
         invalid_type_error: "Teléfono debe contener solo números",
     }), z.literal('')]),
     status: z.string().optional(),

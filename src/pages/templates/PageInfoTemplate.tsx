@@ -4,7 +4,7 @@ import {Spinner} from "../../components/Spinner.tsx";
 import {Toast} from "../../components/Toast.tsx";
 import {Alert} from "../../components/Alert.tsx";
 import {ChangeEvent, useEffect, useState} from "react";
-import {useParams} from "react-router";
+import {useNavigate, useParams} from "react-router";
 import {StatusType} from "../../api/types/user-types.ts";
 import {Path, PathValue, SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -27,6 +27,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
     const [isLoading, setIsLoading] = useState(true);
 
     const params = useParams();
+    const navigate = useNavigate();
 
     const [record, setRecord] = useState<T>({} as T);
 
@@ -75,7 +76,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
     }
 
     const handleReset = () => {
-        console.log('test');
+        navigate(-1);
     }
 
     if (errors) {
@@ -86,7 +87,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
 
     useEffect(() => {
         async function fetchUser() {
-            const record = await props.getRecord(String(params.id));
+            const record: T = await props.getRecord(String(params.id));
             if (record) {
                 setRecord(record);
                 setIsLoading(false);
@@ -114,7 +115,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                         <Header title={"name" in record ? (record.name as string | undefined) : ''}>
                             <CheckInput label='Activo' name='status' checked={isActive} onChange={handleChange}/>
                         </Header>
-                        <div className='mt-5'>
+                        <div className='mt-10'>
                             {
                                 Object.keys(record).map((key) => {
                                     if (key !== 'status') {
@@ -125,11 +126,11 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                                 })
                             }
                             {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) : (
-                                <>
+                                <div className='my-3'>
                                     <Button type='submit' label='Guardar' onClick={handleClick}/>
                                     <Button type='reset' label='Cancelar' onClick={handleReset}
                                             styles={'bg-black text-md ml-6'}/>
-                                </>
+                                </div>
                             )}
                         </div>
                     </form>

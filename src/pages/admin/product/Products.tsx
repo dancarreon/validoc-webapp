@@ -1,17 +1,15 @@
 import {PageListTemplate, PageProps} from "../../templates/PageListTemplate.tsx";
-import {ListType} from "../../../components/List.tsx";
 import {ModelType} from "../../../api/types/model-types.ts";
 import {SubHeaderProps} from "../../../components/SubHeader.tsx";
 import {getAllProducts, getTotalProducts} from "../../../api/product-api.ts";
 import {ProductType} from "../../../api/types/product-types.ts";
-
-const listType: ListType<ProductType> = {model: ModelType.PRODUCT, elements: []};
+import {ListType} from "../../../components/List.tsx";
 
 const pageProps = {
     title: 'Productos',
     isUser: false,
     newRecordPath: '/admin/nuevo-producto',
-    listType: listType,
+    listType: {model: ModelType.PRODUCT, elements: []} as ListType<ProductType>,
     subheaderProps: [
         {title: 'Clave', dbProperty: 'clave', sort: 'asc'},
         {title: 'Status', dbProperty: 'status', sort: 'asc'}

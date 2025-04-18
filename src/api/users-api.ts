@@ -53,7 +53,7 @@ export const getTotalUsers = async (search?: string | undefined): Promise<number
     });
 }
 
-export const getUser = async (userId: string): Promise<UserType> => {
+export const getUser = async (userId: string): Promise<UpdateUserType> => {
     return await fetch(API_URL + '/users/' + userId, {
         method: "GET",
         headers: {

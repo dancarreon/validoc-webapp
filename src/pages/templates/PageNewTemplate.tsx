@@ -11,12 +11,15 @@ import {ChangeEvent, useState} from "react";
 import {StatusType} from "../../api/types/user-types.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ZodType} from "zod";
+import {Dropdown, DropdownElement} from "../../components/Dropdown.tsx";
+import {useNavigate} from "react-router";
 
 export type NewProps<T> = {
     title: string;
     createRecord: (record: T) => Promise<T>;
     createZodSchema: ZodType;
     objectInstance: object;
+    lists?: DropdownElement[];
 };
 
 export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> }) => {
@@ -26,6 +29,8 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
     const [message, setMessage] = useState('')
     const [form, setForm] = useState<T>({} as T);
     const [isLoading, setIsLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const {
         register,
@@ -67,6 +72,10 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
         }, 5000);
     }
 
+    const handleReset = () => {
+        navigate(-1);
+    }
+
     if (errors) {
         for (const key in errors) {
             errorMap.push((errors[key as keyof T] as { message?: string })?.message);
@@ -80,18 +89,34 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
                     <Header title={props.title}>
                         <CheckInput label='Activo' name='status' onChange={handleChange}/>
                     </Header>
-                    <div className='mt-5'>
+                    <div className='mt-10'>
                         {
                             Object.keys(props.objectInstance).map((key) => {
                                 if (key !== 'status') {
-                                    return (
-                                        <TextInput key={key} placeholder={key} {...register(key as Path<T>)}/>
-                                    )
+                                    if (key.includes('Id')) {
+                                        return (
+                                            <Dropdown key={key}
+                                                      placeholder={key}
+                                                      elements={props.lists || []}
+                                                      {...register(key as Path<T>)}/>
+                                        )
+                                    } else {
+                                        return (
+                                            <TextInput key={key} placeholder={key} {...register(key as Path<T>)}/>
+                                        )
+                                    }
                                 }
                             })
                         }
-                        {isLoading ? (<Spinner styles='m-auto pb-10.5 grid'/>) :
-                            <Button type={'submit'} label='Guardar' onClick={handleClick}/>}
+                        {
+                            isLoading
+                                ? (<Spinner styles='m-auto pb-10.5 grid'/>)
+                                : <>
+                                    <Button type={'submit'} label='Guardar' onClick={handleClick}/>
+                                    <Button type='reset' label='Cancelar' onClick={handleReset}
+                                            styles={'bg-black text-md ml-6'}/>
+                                </>
+                        }
                     </div>
                 </form>
             </Container>

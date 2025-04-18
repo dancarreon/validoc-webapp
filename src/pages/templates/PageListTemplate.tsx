@@ -38,6 +38,7 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
         const searchResult = await props.searchApi(pageToGo, PAGE_SIZE, searchString); //await getAllClaves(pageToGo, PAGE_SIZE, searchString);
         if (searchResult) {
             setRecordList(searchResult);
+            props.listType.elements = searchResult;
         }
 
         const totalResults = await props.getTotalApi(searchString); //getTotalClaves(searchString);
@@ -122,7 +123,11 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
                     <NewRecordButton path={props.newRecordPath}/>
                 </Header>
                 <SubHeader props={props.subheaderProps} onClick={(event) => handleSort(event)}/>
-                {isLoading ? <Spinner/> : <List isUser={false} elements={props.listType}/>}
+                {
+                    isLoading
+                        ? <Spinner/>
+                        : <List isUser={false} elements={props.listType}/>
+                }
             </Container>
             <Pagination
                 currentPage={currentPage}

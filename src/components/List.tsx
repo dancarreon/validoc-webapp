@@ -38,16 +38,20 @@ export const List = <T extends object>({elements, isUser = false}: { elements: L
                 navigate(path + '/claves/' + element.id);
             } else if (model === ModelType.RAZON) {
                 navigate(path + '/razones/' + element.id);
+            } else if (model === ModelType.PRODUCT) {
+                navigate(path + '/products/' + element.id);
             }
 
         }
     }
 
     function getLabel(model: string, element: UserType | TrackType | StateType | TadType | T): string | undefined {
-        if (model === 'user' && "username" in element) {
+        if (model === ModelType.USER && "username" in element) {
             return element.username
-        } else if (model === 'tad' && "ciudad" in element) {
+        } else if (model === ModelType.TAD && "ciudad" in element) {
             return element.ciudad
+        } else if (model === ModelType.PRODUCT && "clave" in element) {
+            return element.clave
         } else {
             return "name" in element ? element.name : '' as string;
         }

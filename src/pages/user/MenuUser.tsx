@@ -1,4 +1,4 @@
-import {Container} from "../../components/Container";
+import {Container} from "../../components/Container.tsx";
 import {ButtonWithIcon} from "../../components/ButtonWithIcon.tsx";
 import {DocumentIcon} from "../../components/icons/DocumentIcon.tsx";
 import {FolderIcon} from "../../components/icons/FolderIcon.tsx";

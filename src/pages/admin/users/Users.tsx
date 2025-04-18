@@ -1,7 +1,7 @@
 import {SubHeaderProps} from "../../../components/SubHeader.tsx";
 import {ListType} from "../../../components/List.tsx";
 import {getAllUsers, getTotalUsers} from "../../../api/users-api.ts";
-import {UserType} from "../../../api/types/user-types.ts";
+import {UpdateUserType, UserType} from "../../../api/types/user-types.ts";
 import {PageListTemplate, PageProps} from "../../templates/PageListTemplate.tsx";
 import {ModelType} from "../../../api/types/model-types.ts";
 
@@ -17,7 +17,7 @@ const pageProps = {
     searchApi: getAllUsers,
     getTotalApi: getTotalUsers,
     getAllApi: getAllUsers,
-} as PageProps<UserType>;
+} as PageProps<UpdateUserType>;
 
 export function Users() {
     return (

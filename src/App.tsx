@@ -2,10 +2,10 @@ import './App.css'
 import {BrowserRouter, Route, Routes} from "react-router";
 import {Login} from "./pages/auth/Login.tsx";
 import {MenuUser} from "./pages/user/MenuUser.tsx";
-import {NationalData} from "./pages/user/NationalData.tsx";
-import {Stamps} from "./pages/user/Stamps.tsx";
-import {Folios} from "./pages/user/Folios.tsx";
-import {Track} from "./pages/user/Track.tsx";
+import {NewTraza} from "./pages/traza/NewTraza.tsx";
+import {Stamps} from "./pages/traza/Stamps.tsx";
+import {Folios} from "./pages/traza/Folios.tsx";
+import {Track} from "./pages/traza/Track.tsx";
 import {History} from "./pages/user/History.tsx";
 import {MenuAdmin} from "./pages/admin/MenuAdmin.tsx";
 import {Users} from "./pages/admin/users/Users.tsx";
@@ -26,6 +26,7 @@ import {ProductInfo} from "./pages/admin/product/ProductInfo.tsx";
 import {NewProduct} from "./pages/admin/product/NewProduct.tsx";
 import {NewState} from "./pages/admin/states/NewState.tsx";
 import {NewTad} from "./pages/admin/tads/NewTad.tsx";
+import {NewClave} from "./pages/admin/claves/NewClave.tsx";
 
 const App = () => {
     return (
@@ -38,7 +39,7 @@ const App = () => {
                 {/* User Routes */}
                 <Route path="user" element={<Layout showMenu/>}>
                     <Route index element={<MenuUser/>}/>
-                    <Route path="datos-nacional" element={<NationalData/>}/>
+                    <Route path="datos-nacional" element={<NewTraza/>}/>
                     <Route path="sellos" element={<Stamps/>}/>
                     <Route path="folios" element={<Folios/>}/>
                     <Route path="traza" element={<Track/>}/>
@@ -64,7 +65,7 @@ const App = () => {
                     {/*Admin Claves*/}
                     <Route path="claves" element={<Claves/>}/>
                     <Route path="claves/:id" element={<ClaveInfo/>}/>
-                    <Route path="nueva-clave" element={<NewTad/>}/>
+                    <Route path="nueva-clave" element={<NewClave/>}/>
                     {/*Admin Razones*/}
                     <Route path="razones" element={<Razones/>}/>
                     <Route path="razones/:id" element={<RazonInfo/>}/>
@@ -77,7 +78,7 @@ const App = () => {
                     <Route path="historial" element={<History/>}/>
                     <Route path="traza" element={<Track/>}/>
                     <Route path="traza/:id" element={<Track/>}/>
-                    <Route path="datos-nacional" element={<NationalData/>}/>
+                    <Route path="datos-nacional" element={<NewTraza/>}/>
                     <Route path="sellos" element={<Stamps/>}/>
                     <Route path="folios" element={<Folios/>}/>
                 </Route>
