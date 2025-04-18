@@ -6,10 +6,12 @@ import {TrackType} from "../api/types/traza-types.ts";
 import {StateType} from "../api/types/state-types.ts";
 import {TadType} from "../api/types/tad-types.ts";
 import {ModelType} from "../api/types/model-types.ts";
+import {ProductType} from "../api/types/product-types.ts";
+import {ClaveType} from "../api/types/clave-types.ts";
 
 export type ListType<T> = {
     model: ModelType;
-    elements: UserType[] | TrackType[] | StateType[] | TadType[] | T[];
+    elements: UserType[] | TrackType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | T[];
 }
 
 export const List = <T extends object>({elements, isUser = false}: { elements: ListType<T>, isUser: boolean }) => {
@@ -22,7 +24,7 @@ export const List = <T extends object>({elements, isUser = false}: { elements: L
         isAdmin = true;
     }
 
-    const handleClick = (model: string, element: UserType | TrackType | StateType | TadType | T) => {
+    const handleClick = (model: string, element: T | UserType | TrackType | StateType | TadType | ProductType | ClaveType) => {
         const path: string = isAdmin ? "/admin" : "/user";
 
         if ("id" in element) {
@@ -45,15 +47,17 @@ export const List = <T extends object>({elements, isUser = false}: { elements: L
         }
     }
 
-    function getLabel(model: string, element: UserType | TrackType | StateType | TadType | T): string | undefined {
+    function getLabel(model: string, element: T | UserType | TrackType | StateType | TadType | ProductType | ClaveType): string {
         if (model === ModelType.USER && "username" in element) {
-            return element.username
+            return element.username;
         } else if (model === ModelType.TAD && "ciudad" in element) {
-            return element.ciudad
-        } else if (model === ModelType.PRODUCT && "clave" in element) {
-            return element.clave
+            return element.ciudad;
+        } else if (model === ModelType.CLAVE && "clave" in element) {
+            return element.clave;
+        } else if (model === ModelType.PRODUCT && "name" in element && typeof element.name === "string") {
+            return element.name;
         } else {
-            return "name" in element ? element.name : '' as string;
+            return "name" in element && typeof element.name === "string" ? element.name : "";
         }
     }
 

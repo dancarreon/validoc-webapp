@@ -1,6 +1,4 @@
 import {SubHeaderProps} from "../../components/SubHeader.tsx";
-import {PAGE_SIZE} from "../../api/tads-api.ts";
-import {DropdownElement} from "../../components/Dropdown.tsx";
 
 export const getOrderAndSort = (subheaderProps: SubHeaderProps[]): object[] => {
     const orderAndSort: object[] = [{}]
@@ -10,6 +8,7 @@ export const getOrderAndSort = (subheaderProps: SubHeaderProps[]): object[] => {
     return orderAndSort;
 }
 
+/*
 export const fetchDropdownRecords = async <T extends object>(
     {
         getTotalApi,
@@ -35,3 +34,4 @@ export const fetchDropdownRecords = async <T extends object>(
         })
     }
 }
+*/
