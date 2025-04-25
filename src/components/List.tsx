@@ -86,16 +86,16 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
             {elements && elements.elements && elements.elements.length > 0 ? (
                 <ul className="list shadow-md w-[100%]">
                     {elements.elements.map(element => (
-                        <li className={'list-row items-center rounded-none hover:bg-black cursor-pointer z-10 grid-cols-' + cols}
+                        <li className={'list-row items-center rounded-none hover:bg-black cursor-pointer grid-cols-' + cols + ' flex justify-stretch'}
                             key={"id" in element ? element.id : ''}
                             onClick={() => handleClick(elements.model, element)}>
-                            <div className='inline-flex items-center text-left'>
+                            <div className='inline-flex items-center w-full'>
                                 {
                                     isUser
                                         ? <UserListIcon/>
                                         : <PdfIcon/>
                                 }
-                                <div className='ml-3'>
+                                <div className='ml-3 text-left'>
                                     {
                                         getLabel != null
                                             ? getLabel(elements.model, element)
@@ -106,7 +106,7 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
                             {
                                 cols > 2
                                     ?
-                                    <div className='text-m content-center'>
+                                    <div className='text-m content-center w-full'>
                                         <div className='text-left'>
                                             {getNextLabel(element)}
                                         </div>
@@ -116,7 +116,7 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
                             {
                                 'status' in element
                                     ?
-                                    <div className='text-m text-right'>
+                                    <div className='text-right w-full'>
                                         <input type="checkbox"
                                                readOnly={true}
                                                checked={"status" in element ? element.status === StatusType.ACTIVE.valueOf() : undefined}
