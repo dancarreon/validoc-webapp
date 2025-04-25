@@ -11,7 +11,9 @@ const pageProps = {
     newRecordPath: '/admin/nueva-clave',
     listType: {model: ModelType.CLAVE, elements: []} as ListType<ClaveType>,
     subheaderProps: [
+        {title: 'Clave', dbProperty: 'clave', sort: 'asc'},
         {title: 'Name', dbProperty: 'name', sort: 'asc'},
+        {title: 'Activo', dbProperty: 'status', sort: 'asc'},
     ] as SubHeaderProps[],
     searchApi: getAllClaves,
     getTotalApi: getTotalClaves,

@@ -16,6 +16,10 @@ export const NewTraza = () => {
     const [claves, setClaves] = useState<DropdownElement[]>([]);
     const [razones, setRazones] = useState<DropdownElement[]>([]);
     const [productos, setProductos] = useState<DropdownElement[]>([]);
+    const [totalLitros, setTotalLitros] = useState<number>(0);
+    const [cap1, setCap1] = useState<string>('');
+    const [cap2, setCap2] = useState<string>('');
+    const [cap3, setCap3] = useState<string>('');
 
     const fetchTads = async () => {
         const total = await getTotalTads();
@@ -25,7 +29,7 @@ export const NewTraza = () => {
             const dropdownTads = tads.map((tad) => {
                 return {
                     id: tad.id,
-                    name: tad.ciudad,
+                    name: tad.ciudad + ' - ' + tad.estado?.name,
                 } as DropdownElement;
             });
             setTads(dropdownTads);
@@ -77,12 +81,42 @@ export const NewTraza = () => {
         }
     }
 
+    const calcLitros = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value) {
+            if (e.target.name === 'cap1') {
+                setCap1(value);
+            } else if (e.target.name === 'cap2') {
+                setCap2(value);
+            } else if (e.target.name === 'cap3') {
+                setCap3(value);
+            }
+        }
+    }
+
     useEffect(() => {
+
+        function calcTotal() {
+            let total = 0;
+            if (!isNaN(parseFloat(cap1))) {
+                total += parseFloat(cap1);
+            }
+            if (!isNaN(parseFloat(cap2))) {
+                total += parseFloat(cap2);
+            }
+            if (!isNaN(parseFloat(cap3))) {
+                total += parseFloat(cap3);
+            }
+            setTotalLitros(Number(total.toFixed(2)));
+        }
+
         fetchTads();
         fetchClaves();
         fetchRazones();
         fetchProductos();
-    }, []);
+        calcTotal();
+
+    }, [cap1, cap2, cap3]);
 
     return (
         <div className='h-[100%] content-center mt-3'>
@@ -96,9 +130,15 @@ export const NewTraza = () => {
                     <Dropdown elements={claves} placeholder='Clave Concentradora'/>
                     <Dropdown elements={razones} placeholder='Razón Social Comercial'/>
                     <Dropdown elements={productos} placeholder='Producto'/>
-                    <TextInput type='text' placeholder='Cap. Autotanque 1'/>
-                    <TextInput type='text' placeholder='Cap. Autotanque 2'/>
-                    <TextInput type='text' placeholder='Cap. Autotanque 3'/>
+                    <TextInput type='text' placeholder='Cap. Autotanque 1' onChange={calcLitros} value={String(cap1)}
+                               name={'cap1'}/>
+                    <TextInput type='text' placeholder='Cap. Autotanque 2' onChange={calcLitros} value={String(cap2)}
+                               name={'cap2'}/>
+                    <TextInput type='text' placeholder='Cap. Autotanque 3' onChange={calcLitros} value={String(cap3)}
+                               name={'cap3'}/>
+                    <TextInput type='text' placeholder='Litros Totales' value={String(totalLitros)} readOnly={true}/>
+                    <TextInput type='text' placeholder='Precio/Lt Cliente' name='precioLitro'/>
+                    <TextInput type='text' placeholder='Destino Mun/Estado' name='destino'/>
                     <Button label='Guardar'/>
                 </form>
             </Container>

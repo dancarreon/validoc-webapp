@@ -2,11 +2,11 @@ import {Container} from "../../components/Container.tsx";
 import {Header} from "../../components/Header.tsx";
 import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
-import {StatusType} from "../../api/types/user-types.ts";
 import {Steps} from "../../components/Steps.tsx";
 import {TrackType} from "../../api/types/traza-types.ts";
 import {useEffect, useState} from "react";
 import {ModelType} from "../../api/types/model-types.ts";
+import {StatusType} from "../../api/types/status-type.ts";
 
 const subheaderProps: SubHeaderProps[] = [
     {title: 'Nombre', dbProperty: 'username', sort: 'asc'},

@@ -5,13 +5,13 @@ import {Toast} from "../../components/Toast.tsx";
 import {Alert} from "../../components/Alert.tsx";
 import {ChangeEvent, useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router";
-import {StatusType} from "../../api/types/user-types.ts";
 import {Path, PathValue, SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ZodType} from "zod";
 import {CheckInput} from "../../components/CheckInput.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
+import {StatusType} from "../../api/types/status-type.ts";
 
 export type InfoProps<T> = {
     getRecord: (recordId: string) => Promise<T>;
@@ -20,6 +20,15 @@ export type InfoProps<T> = {
 };
 
 export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T> }) => {
+
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        formState: {errors},
+    } = useForm<T>({
+        resolver: zodResolver(props.updateZodSchema),
+    });
 
     const [show, setShow] = useState(false)
     const [showErrors, setShowErrors] = useState(false)
@@ -30,15 +39,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
     const navigate = useNavigate();
 
     const [record, setRecord] = useState<T>({} as T);
-
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        formState: {errors},
-    } = useForm<T>({
-        resolver: zodResolver(props.updateZodSchema),
-    });
+    const [isActive, setIsActive] = useState(false);
 
     let errorMap: (string | undefined)[] = [];
 
@@ -58,11 +59,12 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
         }
     };
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleStatus = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.name === 'status') {
             e.target.value = (e.target.checked ? StatusType.ACTIVE.valueOf() : StatusType.INACTIVE.valueOf());
+            setValue('status' as Path<T>, e.target.value as PathValue<T, Path<T>>);
+            setIsActive(e.target.checked);
         }
-        setRecord({...record, [e.target.name]: e.target.value});
     }
 
     const handleClick = () => {
@@ -90,6 +92,11 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
             const record: T = await props.getRecord(String(params.id));
             if (record) {
                 setRecord(record);
+
+                if ("status" in record) {
+                    setIsActive(record.status === StatusType.ACTIVE.valueOf());
+                }
+
                 setIsLoading(false);
 
                 const keys: string[] = Object.keys(record);
@@ -102,10 +109,10 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
         fetchUser().catch(console.error);
     }, [params.id, props, setValue]);
 
-    let isActive: boolean = false;
+    /*let isActive: boolean = false;
     if ("status" in record) {
         isActive = record.status === StatusType.ACTIVE.valueOf();
-    }
+    }*/
 
     return (
         <div className='h-[100%] content-center mt-3'>
@@ -113,14 +120,19 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                 <Container>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <Header title={"name" in record ? (record.name as string | undefined) : ''}>
-                            <CheckInput label='Activo' name='status' checked={isActive} onChange={handleChange}/>
+                            <CheckInput label='Activo' name='status' checked={isActive} onChange={handleStatus}/>
                         </Header>
                         <div className='mt-10'>
                             {
                                 Object.keys(record).map((key) => {
-                                    if (key !== 'status') {
+                                    if (key !== 'status' && key !== 'id') {
                                         return (
                                             <TextInput key={key} placeholder={key} {...register(key as Path<T>)}/>
+                                        )
+                                    } else if (key === 'id') {
+                                        return (
+                                            <TextInput type='hidden' key={key}
+                                                       placeholder={key} {...register(key as Path<T>)}/>
                                         )
                                     }
                                 })

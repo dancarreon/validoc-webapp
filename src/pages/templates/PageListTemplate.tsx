@@ -35,24 +35,28 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
 
     async function doSearch(pageToGo: number, searchString: string): Promise<void> {
         setIsLoading(true);
-        const searchResult = await props.searchApi(pageToGo, PAGE_SIZE, searchString); //await getAllClaves(pageToGo, PAGE_SIZE, searchString);
+        const searchResult = await props.searchApi(pageToGo, PAGE_SIZE, searchString);
         if (searchResult) {
             setRecordList(searchResult);
             props.listType.elements = searchResult;
         }
 
-        const totalResults = await props.getTotalApi(searchString); //getTotalClaves(searchString);
-        if (totalResults) {
-            setTotal(totalResults);
-            setCurrentPage(pageToGo);
-        }
+        await fetchTotalSearch(pageToGo, searchString);
         setIsLoading(false);
     }
 
     async function fetchTotalCount(): Promise<void> {
-        const totalResults = await props.getTotalApi(); //getTotalClaves();
+        const totalResults = await props.getTotalApi();
         if (totalResults) {
             setTotal(totalResults);
+        }
+    }
+
+    async function fetchTotalSearch(pageToGo: number, searchString: string): Promise<void> {
+        const totalResults = await props.getTotalApi(searchString);
+        if (totalResults) {
+            setTotal(totalResults);
+            setCurrentPage(pageToGo);
         }
     }
 
@@ -61,7 +65,7 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
 
         const orderAndSort = getOrderAndSort(props.subheaderProps);
 
-        const allRecords: T[] = await props.getAllApi(pageToGo, PAGE_SIZE, getValues('search'), orderAndSort); //getAllClaves(pageToGo, PAGE_SIZE, getValues('search'), orderAndSort);
+        const allRecords: T[] = await props.getAllApi(pageToGo, PAGE_SIZE, getValues('search'), orderAndSort);
         if (allRecords) {
             setRecordList(allRecords);
             setCurrentPage(pageToGo);
@@ -83,6 +87,7 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
                 await fetchAllRecords(pageToGo);
             } else {
                 await doSearch(pageToGo, getValues('search'));
+
             }
         }
     };
@@ -93,7 +98,7 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
         const orderBy = e.currentTarget.name;
         const orderAndSort = getOrderAndSort(props.subheaderProps);
 
-        const allRecords = await props.getAllApi(Number(currentPage), PAGE_SIZE, getValues('search'), orderAndSort); //getAllClaves(Number(currentPage), PAGE_SIZE, getValues('search'), orderAndSort);
+        const allRecords = await props.getAllApi(Number(currentPage), PAGE_SIZE, getValues('search'), orderAndSort);
         if (allRecords) {
             setRecordList(allRecords);
             props.subheaderProps.forEach((prop) => {
@@ -101,9 +106,15 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
                     prop.sort = prop.sort === 'asc' ? 'desc' : 'asc';
                 }
             });
+            props.listType.elements = allRecords;
         }
 
-        await fetchTotalCount();
+        if (getValues('search') === '') {
+            await fetchTotalCount();
+        } else {
+            await fetchTotalSearch(currentPage, getValues('search'));
+        }
+
         setIsLoading(false);
     };
 
@@ -126,7 +137,7 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
                 {
                     isLoading
                         ? <Spinner/>
-                        : <List isUser={false} elements={props.listType}/>
+                        : <List isUser={false} elements={props.listType} cols={props.subheaderProps.length}/>
                 }
             </Container>
             <Pagination

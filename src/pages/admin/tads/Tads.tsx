@@ -13,6 +13,7 @@ const pageProps = {
     subheaderProps: [
         {title: 'Ciudad', dbProperty: 'ciudad', sort: 'asc'},
         {title: 'Estado', dbProperty: 'estadoId', sort: 'asc'},
+        {title: 'Activo', dbProperty: 'status', sort: 'asc'},
     ] as SubHeaderProps[],
     searchApi: getAllTads,
     getTotalApi: getTotalTads,

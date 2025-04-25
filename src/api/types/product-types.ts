@@ -1,5 +1,5 @@
-import {StatusType} from "./user-types.ts";
 import {z, ZodType} from "zod";
+import {StatusType} from "./status-type.ts";
 
 export interface ProductType {
     id: string;
@@ -28,12 +28,18 @@ export const CreateProductSchema: ZodType = z.object({
     clave: z.string({
         required_error: "Clave es requerida",
     }).min(6, "Clave debe tener al menos 6 caracteres"),
-    descripcion: z.string()
+    descripcion: z.string(),
+    status: z.enum(["ACTIVE", "INACTIVE"], {
+        required_error: "Status es requerido",
+    }).default("ACTIVE"),
 })
 
 export const UpdateProductSchema: ZodType = z.object({
     clave: z.string({
         required_error: "Clave es requerida",
     }).min(6, "Clave debe tener al menos 6 caracteres"),
-    descripcion: z.string()
+    descripcion: z.string(),
+    status: z.enum(["ACTIVE", "INACTIVE"], {
+        required_error: "Status es requerido",
+    }).default("ACTIVE"),
 })

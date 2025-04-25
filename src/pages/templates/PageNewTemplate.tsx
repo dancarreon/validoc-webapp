@@ -8,11 +8,11 @@ import {Toast} from "../../components/Toast.tsx";
 import {Alert} from "../../components/Alert.tsx";
 import {Path, SubmitHandler, useForm} from "react-hook-form";
 import {ChangeEvent, useState} from "react";
-import {StatusType} from "../../api/types/user-types.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ZodType} from "zod";
 import {Dropdown, DropdownElement} from "../../components/Dropdown.tsx";
 import {useNavigate} from "react-router";
+import {StatusType} from "../../api/types/status-type.ts";
 
 export type NewProps<T> = {
     title: string;

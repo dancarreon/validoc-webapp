@@ -25,7 +25,7 @@ export const Dropdown = ({elements, placeholder, name, value, onChange, onBlur, 
                 onChange={onChange}
                 onBlur={onBlur}
                 ref={ref}
-                className='dropdown-content menu rounded-box z-1 ml-3 md:ml-10 mb-9 shadow-lg bg-white text-black text-lg w-83 sm:w-100 block overflow-auto'>
+                className='dropdown-content menu rounded-box z-1 ml-3 md:ml-10 mb-5 shadow-lg bg-white text-black text-lg w-83 sm:w-100 block overflow-auto'>
                 {elements.map((element, index) => {
                     if (index == 0) {
                         return (<option key={index} value=''>Seleccione una opción</option>)

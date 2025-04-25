@@ -1,4 +1,4 @@
-import {StatusType} from "./user-types.ts";
+import {StatusType} from "./status-type.ts";
 
 export interface TrackType {
     id: number;

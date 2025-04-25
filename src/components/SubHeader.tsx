@@ -14,7 +14,7 @@ export const SubHeader = ({props, onClick}: {
 }) => {
     return (
         <>
-            <div className='columns-2 bg-[#7E7E7E] h-11 pt-2 pl-4 w-[100%]'>
+            <div className={`columns-${props.length} bg-[#7E7E7E] h-11 pt-2 pl-4 w-[100%] flex justify-between`}>
                 {props.map((prop: SubHeaderProps, index: number) => (
                     index == 0 ? (
                         <div className='font-semibold text-md text-left text-white' key={index}>

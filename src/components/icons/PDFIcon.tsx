@@ -1,6 +1,6 @@
 export const PdfIcon = () => {
     return (
-        <svg width="32" height="35" viewBox="0 0 32 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="30" height="35" viewBox="0 0 30 35" fill="none" xmlns="http://www.w3.org/2000/svg">
             <mask id="mask0_11_43" style={{maskType: 'alpha'}} maskUnits="userSpaceOnUse" x="0" y="0" width="32"
                   height="35">
                 <path

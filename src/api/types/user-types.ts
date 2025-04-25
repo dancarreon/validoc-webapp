@@ -1,9 +1,5 @@
 import {z, ZodType} from "zod";
-
-export enum StatusType {
-    ACTIVE = "ACTIVE",
-    INACTIVE = "INACTIVE",
-}
+import {StatusType} from "./status-type.ts";
 
 export interface UserType {
     id: string;

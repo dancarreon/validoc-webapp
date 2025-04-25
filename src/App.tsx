@@ -27,6 +27,9 @@ import {NewProduct} from "./pages/admin/product/NewProduct.tsx";
 import {NewState} from "./pages/admin/states/NewState.tsx";
 import {NewTad} from "./pages/admin/tads/NewTad.tsx";
 import {NewClave} from "./pages/admin/claves/NewClave.tsx";
+import {Transportistas} from "./pages/admin/transportistas/Transportistas.tsx";
+import {TransportistaInfo} from "./pages/admin/transportistas/TransportistaInfo.tsx";
+import {NewTransportista} from "./pages/admin/transportistas/NewTransportista.tsx";
 
 const App = () => {
     return (
@@ -74,6 +77,10 @@ const App = () => {
                     <Route path="products" element={<Products/>}/>
                     <Route path="products/:id" element={<ProductInfo/>}/>
                     <Route path="nuevo-producto" element={<NewProduct/>}/>
+                    {/*Admin Transportistas*/}
+                    <Route path="transportistas" element={<Transportistas/>}/>
+                    <Route path="transportistas/:id" element={<TransportistaInfo/>}/>
+                    <Route path="nuevo-transportista" element={<NewTransportista/>}/>
                     {/*Admin History/Tracks/Documents*/}
                     <Route path="historial" element={<History/>}/>
                     <Route path="traza" element={<Track/>}/>

@@ -12,6 +12,7 @@ const pageProps = {
     listType: {model: ModelType.STATES, elements: []} as ListType<StateType>,
     subheaderProps: [
         {title: 'Nombre', dbProperty: 'name', sort: 'asc'},
+        {title: 'Activo', dbProperty: 'status', sort: 'asc'},
     ] as SubHeaderProps[],
     searchApi: getAllStates,
     getTotalApi: getTotalStates,

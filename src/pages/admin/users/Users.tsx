@@ -11,7 +11,7 @@ const pageProps = {
     newRecordPath: '/admin/nuevo-usuario',
     listType: {model: ModelType.USER, elements: []} as ListType<UserType>,
     subheaderProps: [
-        {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
+        {title: 'Usuario', dbProperty: 'username', sort: 'asc'},
         {title: 'Status', dbProperty: 'status', sort: 'asc'}
     ] as SubHeaderProps[],
     searchApi: getAllUsers,

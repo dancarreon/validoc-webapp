@@ -1,5 +1,5 @@
 import {z, ZodType} from "zod";
-import {StatusType} from "./user-types.ts";
+import {StatusType} from "./status-type.ts";
 
 export interface RazonType {
     id: string;
@@ -13,6 +13,7 @@ export class Razon implements Omit<RazonType, 'id' | 'createdAt' | 'updatedAt'> 
     constructor(partial: Partial<RazonType>) {
         Object.assign(this, partial);
     }
+
     name!: string;
     status!: StatusType;
 }
@@ -25,10 +26,16 @@ export const CreateRazonSchema: ZodType = z.object({
     name: z.string({
         required_error: "Nombre es requerido",
     }).min(6, "Nombre debe tener al menos 6 caracteres"),
+    status: z.enum(["ACTIVE", "INACTIVE"], {
+        required_error: "Estado es requerido",
+    }),
 })
 
 export const UpdateRazonSchema: ZodType = z.object({
     name: z.string({
         required_error: "Nombre es requerido",
     }).min(6, "Nombre debe tener al menos 6 caracteres"),
+    status: z.enum(["ACTIVE", "INACTIVE"], {
+        required_error: "Estado es requerido",
+    }),
 })

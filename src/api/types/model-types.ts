@@ -6,4 +6,5 @@ export enum ModelType {
     CLAVE = 'clave',
     RAZON = 'razon',
     PRODUCT = 'product',
+    TRANSPORTISTA = 'transportista',
 }

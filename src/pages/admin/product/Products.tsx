@@ -12,6 +12,7 @@ const pageProps = {
     listType: {model: ModelType.PRODUCT, elements: []} as ListType<ProductType>,
     subheaderProps: [
         {title: 'Clave', dbProperty: 'clave', sort: 'asc'},
+        {title: 'Descripción', dbProperty: 'descripcion', sort: 'asc'},
         {title: 'Status', dbProperty: 'status', sort: 'asc'}
     ] as SubHeaderProps[],
     searchApi: getAllProducts,
