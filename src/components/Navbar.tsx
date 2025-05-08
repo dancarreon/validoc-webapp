@@ -23,7 +23,7 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
                             <summary className='flex justify-end pr-5'>Menu</summary>
                             <ul className="bg-black rounded-t-none">
                                 <li>
-                                    <a href={'/' + prefix + '/datos-nacional'}>Nueva Traza</a>
+                                    <a href={'/' + prefix + '/traza'}>Nueva Traza</a>
                                 </li>
                                 <li>
                                     <a href={'/' + prefix + '/historial'}>Trazas</a>

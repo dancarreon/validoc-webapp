@@ -1,6 +1,9 @@
 import {UpdateTadSchema, UpdateTadType} from "../../../api/types/tad-types.ts";
 import {getTad, updateTad} from "../../../api/tads-api.ts";
 import {InfoProps, PageInfoTemplate} from "../../templates/PageInfoTemplate.tsx";
+import {useEffect, useState} from "react";
+import {DropdownElement} from "../../../components/Dropdown.tsx";
+import {getAllStates, getTotalStates} from "../../../api/states-api.ts";
 
 const infoProps = {
     getRecord: getTad,
@@ -9,6 +12,31 @@ const infoProps = {
 } as InfoProps<UpdateTadType>;
 
 export const TadInfo = () => {
+
+    //TODO : Make this block of code reusable
+    const [states, setStates] = useState<DropdownElement[]>([]);
+
+    const fetchStates = async () => {
+        const total = await getTotalStates();
+        const estados = await getAllStates(0, total);
+
+        if (estados) {
+            const dropdownStates = estados.map((estado) => {
+                return {
+                    id: estado.id,
+                    name: estado.name,
+                } as DropdownElement;
+            });
+            setStates(dropdownStates);
+        }
+    }
+
+    useEffect(() => {
+        fetchStates();
+    }, []);
+
+    infoProps.lists = states;
+
     return (
         <PageInfoTemplate props={infoProps}/>
     );

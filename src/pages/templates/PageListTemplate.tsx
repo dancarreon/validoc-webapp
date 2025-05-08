@@ -137,7 +137,7 @@ export const PageListTemplate = <T extends object>({props}: { props: PageProps<T
                 {
                     isLoading
                         ? <Spinner/>
-                        : <List isUser={false} elements={props.listType} cols={props.subheaderProps.length}/>
+                        : <List elements={props.listType} cols={props.subheaderProps.length}/>
                 }
             </Container>
             <Pagination

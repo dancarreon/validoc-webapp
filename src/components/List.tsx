@@ -1,8 +1,6 @@
 import {UserType} from "../api/types/user-types.ts";
-import {UserListIcon} from "./icons/UserListIcon.tsx";
-import {PdfIcon} from "./icons/PDFIcon.tsx";
 import {useNavigate} from "react-router";
-import {TrackType} from "../api/types/traza-types.ts";
+import {TrazaType} from "../api/types/traza-types.ts";
 import {StateType} from "../api/types/state-types.ts";
 import {TadType} from "../api/types/tad-types.ts";
 import {ModelType} from "../api/types/model-types.ts";
@@ -10,15 +8,15 @@ import {ProductType} from "../api/types/product-types.ts";
 import {ClaveType} from "../api/types/clave-types.ts";
 import {TransportistaType} from "../api/types/transportista-types.ts";
 import {StatusType} from "../api/types/status-type.ts";
+import {FileIcon} from "./icons/FileIcon.tsx";
 
 export type ListType<T> = {
     model: ModelType;
-    elements: UserType[] | TrackType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | TransportistaType[] | T[];
+    elements: UserType[] | TrazaType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | TransportistaType[] | T[];
 }
 
-export const List = <T extends object>({elements, isUser = false, cols = 2}: {
+export const List = <T extends object>({elements, cols = 2}: {
     elements: ListType<T>,
-    isUser: boolean,
     cols?: number
 }) => {
 
@@ -30,7 +28,7 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
         isAdmin = true;
     }
 
-    const handleClick = (model: string, element: T | UserType | TrackType | StateType | TadType | ProductType | ClaveType | TransportistaType) => {
+    const handleClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType) => {
         const path: string = isAdmin ? "/admin" : "/user";
 
         if ("id" in element) {
@@ -54,7 +52,7 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
         }
     }
 
-    function getLabel(model: string, element: T | UserType | TrackType | StateType | TadType | ProductType | ClaveType | TransportistaType): string {
+    function getLabel(model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType): string {
         if (model === ModelType.USER && "username" in element) {
             return element.username;
         } else if (model === ModelType.TAD && "ciudad" in element) {
@@ -68,7 +66,7 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
         }
     }
 
-    function getNextLabel(element: T | UserType | TrackType | StateType | TadType | ProductType | ClaveType | TransportistaType): string {
+    function getNextLabel(element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType): string {
         if ("estado" in element) {
             return element.estado?.name as string;
         } else if ("lastName" in element) {
@@ -90,11 +88,9 @@ export const List = <T extends object>({elements, isUser = false, cols = 2}: {
                             key={"id" in element ? element.id : ''}
                             onClick={() => handleClick(elements.model, element)}>
                             <div className='inline-flex items-center w-full'>
-                                {
-                                    isUser
-                                        ? <UserListIcon/>
-                                        : <PdfIcon/>
-                                }
+                                <div className='w-fit'>
+                                    <FileIcon/>
+                                </div>
                                 <div className='ml-3 text-left'>
                                     {
                                         getLabel != null

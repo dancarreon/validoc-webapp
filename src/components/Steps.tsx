@@ -1,4 +1,7 @@
-export const Steps = ({step}: { step: number }) => {
+export const Steps = ({step, trazaId}: {
+    step: number,
+    trazaId?: string,
+}) => {
 
     let isAdmin = false;
 
@@ -9,28 +12,38 @@ export const Steps = ({step}: { step: number }) => {
     const path: string = isAdmin ? "/admin" : "/user";
 
     return (
-        <div className='pt-5 mb-4'>
-            <ul className="steps text-sm">
-                <li className={'step ' + (step >= 1 ? 'step-primary' : '')}>
-                    <a href={path + '/datos-nacional'}>
-                        Datos Nacional
-                    </a>
-                </li>
-                <li className={'step ' + (step >= 2 ? 'step-primary' : '')}>
-                    <a href={path + '/sellos'}>
+        <div className='pt-5 mb-4 w-full'>
+            <ul className="steps text-sm w-full">
+                <a href={path + '/traza' + (trazaId ? '/' + trazaId : '')}
+                   className={'step ' + (step >= 1 ? 'step-primary' : '')}>
+                    <li>
+                        Datos
+                    </li>
+                </a>
+                <a href={path + '/sellos' + (trazaId ? '/' + trazaId : '')}
+                   className={'step ' + (step >= 2 ? 'step-primary' : '')}>
+                    <li>
                         Sellos
-                    </a>
-                </li>
-                <li className={'step ' + (step >= 3 ? 'step-primary' : '')}>
-                    <a href={path + '/folios'}>
+                    </li>
+                </a>
+                <a href={path + '/folios' + (trazaId ? '/' + trazaId : '')}
+                   className={'step ' + (step >= 3 ? 'step-primary' : '')}>
+                    <li>
                         Folios
-                    </a>
-                </li>
-                <li className={'step ' + (step >= 4 ? 'step-primary' : '')}>
-                    <a href={path + '/traza'}>
-                        Traza
-                    </a>
-                </li>
+                    </li>
+                </a>
+                <a href={path + '/placas' + (trazaId ? '/' + trazaId : '')}
+                   className={'step ' + (step >= 4 ? 'step-primary' : '')}>
+                    <li>
+                        Placas
+                    </li>
+                </a>
+                <a href={path + '/docs' + (trazaId ? '/' + trazaId : '')}
+                   className={'step ' + (step >= 5 ? 'step-primary' : '')}>
+                    <li>
+                        Docs
+                    </li>
+                </a>
             </ul>
         </div>
     )

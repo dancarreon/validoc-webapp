@@ -3,9 +3,9 @@ import {BrowserRouter, Route, Routes} from "react-router";
 import {Login} from "./pages/auth/Login.tsx";
 import {MenuUser} from "./pages/user/MenuUser.tsx";
 import {NewTraza} from "./pages/traza/NewTraza.tsx";
-import {Stamps} from "./pages/traza/Stamps.tsx";
+import {Sellos} from "./pages/traza/Sellos.tsx";
 import {Folios} from "./pages/traza/Folios.tsx";
-import {Track} from "./pages/traza/Track.tsx";
+import {TrazaDocs} from "./pages/traza/TrazaDocs.tsx";
 import {History} from "./pages/user/History.tsx";
 import {MenuAdmin} from "./pages/admin/MenuAdmin.tsx";
 import {Users} from "./pages/admin/users/Users.tsx";
@@ -30,6 +30,7 @@ import {NewClave} from "./pages/admin/claves/NewClave.tsx";
 import {Transportistas} from "./pages/admin/transportistas/Transportistas.tsx";
 import {TransportistaInfo} from "./pages/admin/transportistas/TransportistaInfo.tsx";
 import {NewTransportista} from "./pages/admin/transportistas/NewTransportista.tsx";
+import {Placas} from "./pages/traza/Placas.tsx";
 
 const App = () => {
     return (
@@ -43,10 +44,10 @@ const App = () => {
                 <Route path="user" element={<Layout showMenu/>}>
                     <Route index element={<MenuUser/>}/>
                     <Route path="datos-nacional" element={<NewTraza/>}/>
-                    <Route path="sellos" element={<Stamps/>}/>
+                    <Route path="sellos" element={<Sellos/>}/>
                     <Route path="folios" element={<Folios/>}/>
-                    <Route path="traza" element={<Track/>}/>
-                    <Route path="traza/:id" element={<Track/>}/>
+                    <Route path="traza" element={<TrazaDocs/>}/>
+                    <Route path="traza/:id" element={<TrazaDocs/>}/>
                     <Route path="historial" element={<History/>}/>
                 </Route>
 
@@ -83,11 +84,16 @@ const App = () => {
                     <Route path="nuevo-transportista" element={<NewTransportista/>}/>
                     {/*Admin History/Tracks/Documents*/}
                     <Route path="historial" element={<History/>}/>
-                    <Route path="traza" element={<Track/>}/>
-                    <Route path="traza/:id" element={<Track/>}/>
-                    <Route path="datos-nacional" element={<NewTraza/>}/>
-                    <Route path="sellos" element={<Stamps/>}/>
+                    <Route path="traza" element={<NewTraza/>}/>
+                    <Route path="traza/:id" element={<NewTraza/>}/>
+                    <Route path="sellos" element={<Sellos/>}/>
+                    <Route path="sellos/:id" element={<Sellos/>}/>
                     <Route path="folios" element={<Folios/>}/>
+                    <Route path="folios/:id" element={<Folios/>}/>
+                    <Route path="placas" element={<Placas/>}/>
+                    <Route path="placas/:id" element={<Placas/>}/>
+                    <Route path="docs" element={<TrazaDocs/>}/>
+                    <Route path="docs/:id" element={<TrazaDocs/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>

@@ -3,31 +3,33 @@ import {Header} from "../../components/Header.tsx";
 import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Steps} from "../../components/Steps.tsx";
-import {TrackType} from "../../api/types/traza-types.ts";
+import {TrazaType} from "../../api/types/traza-types.ts";
 import {useEffect, useState} from "react";
 import {ModelType} from "../../api/types/model-types.ts";
 import {StatusType} from "../../api/types/status-type.ts";
+import {useParams} from "react-router";
 
 const subheaderProps: SubHeaderProps[] = [
     {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
     {title: 'Status', dbProperty: 'status', sort: 'asc'}
 ];
 
-export const Track = () => {
+export const TrazaDocs = () => {
 
-    const [documentList, setDocumentList] = useState<TrackType[]>([]);
+    const [documentList, setDocumentList] = useState<TrazaType[]>([]);
+    const params = useParams();
 
     useEffect(() => {
         setDocumentList([{
-            id: 1,
+            id: '1',
             name: "Document 1",
             status: StatusType.INACTIVE,
         }, {
-            id: 2,
+            id: '2',
             name: "Document 2",
             status: StatusType.INACTIVE,
         }, {
-            id: 3,
+            id: '3',
             name: "Document 3",
             status: StatusType.INACTIVE,
         }])
@@ -36,10 +38,10 @@ export const Track = () => {
     return (
         <div className='h-[100%] content-center mt-3'>
             <Container>
-                <Steps step={4}/>
-                <Header title='Track'/>
+                <Steps step={5} trazaId={params.id}/>
+                <Header title='Traza'/>
                 <SubHeader props={subheaderProps}/>
-                <List isUser={false} elements={{model: ModelType.TRACK, elements: documentList}}/>
+                <List elements={{model: ModelType.TRACK, elements: documentList}}/>
             </Container>
         </div>
     )

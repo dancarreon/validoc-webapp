@@ -8,7 +8,7 @@ export const MenuAdmin = () => {
     return (
         <div className='h-[90vh] content-center mt-3'>
             <Container styles='grid'>
-                <a href='/admin/datos-nacional'>
+                <a href='/admin/traza'>
                     <ButtonWithIcon title='Nueva Traza'>
                         <DocumentIcon/>
                     </ButtonWithIcon>

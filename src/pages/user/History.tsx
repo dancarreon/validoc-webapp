@@ -2,7 +2,7 @@ import {Header} from "../../components/Header.tsx";
 import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
 import {List} from "../../components/List.tsx";
 import {Container} from "../../components/Container.tsx";
-import {TrackType} from "../../api/types/traza-types.ts";
+import {TrazaType} from "../../api/types/traza-types.ts";
 import {MouseEvent, useEffect, useState} from "react";
 import {Spinner} from "../../components/Spinner.tsx";
 import {ModelType} from "../../api/types/model-types.ts";
@@ -15,7 +15,7 @@ const subheaderProps: SubHeaderProps[] = [
 
 export const History = () => {
 
-    const [historyList, setHistoryList] = useState<TrackType[][]>([]);
+    const [historyList, setHistoryList] = useState<TrazaType[][]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const handleSort = async (e: MouseEvent<HTMLButtonElement>) => {
@@ -38,10 +38,10 @@ export const History = () => {
         const historyList = [];
         for (let j = 0; j < 4; j++) {
 
-            const documents: TrackType[] = [];
+            const documents: TrazaType[] = [];
 
             for (let i = 0; i < Math.floor(Math.random() * 5); i++) {
-                const document: TrackType = {
+                const document: TrazaType = {
                     id: i + 1,
                     name: "Documento " + (i + 1),
                     status: (i % 2 === 0 ? StatusType.ACTIVE : StatusType.INACTIVE),
@@ -63,12 +63,12 @@ export const History = () => {
         <div className='grid mt-3'>
             {historyList.map((history, index) => (
                 <Container key={index}>
-                    <Header title={'Track ' + index}/>
+                    <Header title={'Traza ' + index}/>
                     <SubHeader props={subheaderProps} onClick={(event) => handleSort(event)}/>
                     {
                         isLoading
                             ? <Spinner/>
-                            : <List isUser={false} elements={{model: ModelType.TRACK, elements: history}}/>
+                            : <List elements={{model: ModelType.TRACK, elements: history}}/>
                     }
                 </Container>
             ))}

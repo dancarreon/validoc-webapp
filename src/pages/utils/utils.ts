@@ -8,30 +8,25 @@ export const getOrderAndSort = (subheaderProps: SubHeaderProps[]): object[] => {
     return orderAndSort;
 }
 
-/*
-export const fetchDropdownRecords = async <T extends object>(
-    {
-        getTotalApi,
-        getAllApi,
-        id,
-        name,
-    }: {
-        getTotalApi: (searchString?: string) => Promise<number>,
-        getAllApi: (pageToGo?: number, PAGE_SIZE?: number, searchString?: string, orderAndSort?: object[]) => Promise<T[]>,
-        id: string,
-        name: string,
-    }
-) => {
-    const total = await getTotalApi();
-    const records = await getAllApi(0, total >= 10 ? total : PAGE_SIZE);
+/*export type FetchDropdownProps<T> = {
+    getTotalApi: (searchString?: string) => Promise<number>,
+    getAllApi: (pageToGo?: number, PAGE_SIZE?: number, searchString?: string, orderAndSort?: object[]) => Promise<T[]>,
+}
 
-    if (records) {
+export const fetchDropdownRecords = async <T extends object>(
+    {props}: { props: FetchDropdownProps<T> }
+): Promise<DropdownElement[]> => {
+    const total = await props.getTotalApi();
+    const records = await props.getAllApi(0, total >= 10 ? total : PAGE_SIZE);
+
+    if (records && records.length > 0) {
         return records.map((record) => {
             return {
-                id: (id in record) ? record[id] : record['id'],
-                name: (name in record) ? record[name] : record['name'],
+                id: ('id' in record) ? record.id : '',
+                name: ('name' in record) ? record.name : '',
             } as DropdownElement;
-        })
+        });
     }
-}
-*/
+
+    return [];
+}*/

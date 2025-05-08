@@ -12,11 +12,13 @@ import {CheckInput} from "../../components/CheckInput.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {StatusType} from "../../api/types/status-type.ts";
+import {Dropdown, DropdownElement} from "../../components/Dropdown.tsx";
 
 export type InfoProps<T> = {
     getRecord: (recordId: string) => Promise<T>;
     updateRecord: (recordId: string, record: T) => Promise<T>;
     updateZodSchema: ZodType;
+    lists?: DropdownElement[];
 };
 
 export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T> }) => {
@@ -89,6 +91,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
 
     useEffect(() => {
         async function fetchUser() {
+            setIsLoading(true);
             const record: T = await props.getRecord(String(params.id));
             if (record) {
                 setRecord(record);
@@ -97,22 +100,16 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                     setIsActive(record.status === StatusType.ACTIVE.valueOf());
                 }
 
-                setIsLoading(false);
-
                 const keys: string[] = Object.keys(record);
                 for (const key of keys) {
                     setValue(key as Path<T>, record[key as keyof T] as PathValue<T, Path<T>>);
                 }
+                setIsLoading(false);
             }
         }
 
         fetchUser().catch(console.error);
     }, [params.id, props, setValue]);
-
-    /*let isActive: boolean = false;
-    if ("status" in record) {
-        isActive = record.status === StatusType.ACTIVE.valueOf();
-    }*/
 
     return (
         <div className='h-[100%] content-center mt-3'>
@@ -125,13 +122,25 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                         <div className='mt-10'>
                             {
                                 Object.keys(record).map((key) => {
-                                    if (key !== 'status' && key !== 'id') {
-                                        return (
-                                            <TextInput key={key} placeholder={key} {...register(key as Path<T>)}/>
-                                        )
-                                    } else if (key === 'id') {
+                                    if (key === 'id') {
                                         return (
                                             <TextInput type='hidden' key={key}
+                                                       placeholder={key} {...register(key as Path<T>)}/>
+                                        )
+                                    } else if (key.includes('Id')) {
+                                        return (
+                                            <Dropdown elements={props.lists || []} key={key}
+                                                      value={record[key as keyof T] as string}
+                                                      placeholder={key} {...register(key as Path<T>)}/>
+                                        )
+                                        /* TODO : add checkbox
+                                        } else if (key === 'generated') {
+                                            return (
+                                                <CheckInput label={key} name={key} checked={true}/>
+                                            )*/
+                                    } else if (key !== 'status' && key !== 'id') {
+                                        return (
+                                            <TextInput key={key}
                                                        placeholder={key} {...register(key as Path<T>)}/>
                                         )
                                     }
