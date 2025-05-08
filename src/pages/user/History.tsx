@@ -42,8 +42,8 @@ export const History = () => {
 
             for (let i = 0; i < Math.floor(Math.random() * 5); i++) {
                 const document: TrazaType = {
-                    id: i + 1,
-                    name: "Documento " + (i + 1),
+                    id: String(i + 1),
+                    folio: "Documento " + (i + 1),
                     status: (i % 2 === 0 ? StatusType.ACTIVE : StatusType.INACTIVE),
                 };
                 documents.push(document);

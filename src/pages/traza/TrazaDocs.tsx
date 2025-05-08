@@ -22,15 +22,15 @@ export const TrazaDocs = () => {
     useEffect(() => {
         setDocumentList([{
             id: '1',
-            name: "Document 1",
+            folio: "Document 1",
             status: StatusType.INACTIVE,
         }, {
             id: '2',
-            name: "Document 2",
+            folio: "Document 2",
             status: StatusType.INACTIVE,
         }, {
             id: '3',
-            name: "Document 3",
+            folio: "Document 3",
             status: StatusType.INACTIVE,
         }])
     }, [])
