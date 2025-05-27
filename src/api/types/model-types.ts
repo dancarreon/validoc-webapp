@@ -1,6 +1,6 @@
 export enum ModelType {
     USER = 'user',
-    TRACK = 'track',
+    TRAZA = 'traza',
     STATES = 'states',
     TAD = 'tad',
     CLAVE = 'clave',

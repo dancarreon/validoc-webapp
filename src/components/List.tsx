@@ -34,7 +34,7 @@ export const List = <T extends object>({elements, cols = 2}: {
         if ("id" in element) {
             if (model === ModelType.USER) {
                 navigate(path + '/usuario/' + element.id);
-            } else if (model === ModelType.TRACK) {
+            } else if (model === ModelType.TRAZA) {
                 navigate(path + '/traza/' + element.id);
             } else if (model === ModelType.STATES) {
                 navigate(path + '/estados/' + element.id);
@@ -61,6 +61,8 @@ export const List = <T extends object>({elements, cols = 2}: {
             return element.clave;
         } else if (model === ModelType.PRODUCT && "clave" in element) {
             return element.clave;
+        } else if (model === ModelType.TRAZA && "folio" in element) {
+            return element.id;
         } else {
             return "name" in element && typeof element.name === "string" ? element.name : "";
         }

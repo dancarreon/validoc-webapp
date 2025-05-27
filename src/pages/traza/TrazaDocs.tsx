@@ -41,7 +41,7 @@ export const TrazaDocs = () => {
                 <Steps step={5} trazaId={params.id}/>
                 <Header title='Traza'/>
                 <SubHeader props={subheaderProps}/>
-                <List elements={{model: ModelType.TRACK, elements: documentList}}/>
+                <List elements={{model: ModelType.TRAZA, elements: documentList}}/>
             </Container>
         </div>
     )

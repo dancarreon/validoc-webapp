@@ -1,77 +1,26 @@
-import {Header} from "../../components/Header.tsx";
-import {SubHeader, SubHeaderProps} from "../../components/SubHeader.tsx";
-import {List} from "../../components/List.tsx";
-import {Container} from "../../components/Container.tsx";
+import {SubHeaderProps} from "../../components/SubHeader.tsx";
+import {ListType} from "../../components/List.tsx";
 import {TrazaType} from "../../api/types/traza-types.ts";
-import {MouseEvent, useEffect, useState} from "react";
-import {Spinner} from "../../components/Spinner.tsx";
 import {ModelType} from "../../api/types/model-types.ts";
-import {StatusType} from "../../api/types/status-type.ts";
+import {getAllTrazas, getTotalTrazas} from "../../api/trazas-api.ts";
+import {PageListTemplate, PageProps} from "../templates/PageListTemplate.tsx";
 
-const subheaderProps: SubHeaderProps[] = [
-    {title: 'Nombre', dbProperty: 'username', sort: 'asc'},
-    {title: 'Status', dbProperty: 'status', sort: 'asc'}
-];
+const pageProps = {
+    title: 'Historial de Trazas',
+    isUser: false,
+    newRecordPath: '/admin/traza',
+    listType: {model: ModelType.TRAZA, elements: []} as ListType<TrazaType>,
+    subheaderProps: [
+        {title: 'ID', dbProperty: 'id', sort: 'asc'},
+        {title: 'Activo', dbProperty: 'status', sort: 'asc'},
+    ] as SubHeaderProps[],
+    searchApi: getAllTrazas,
+    getTotalApi: getTotalTrazas,
+    getAllApi: getAllTrazas,
+} as PageProps<TrazaType>;
 
 export const History = () => {
-
-    const [historyList, setHistoryList] = useState<TrazaType[][]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const handleSort = async (e: MouseEvent<HTMLButtonElement>) => {
-        setIsLoading(true);
-
-        const orderBy = e.currentTarget.name;
-
-        subheaderProps.forEach((prop) => {
-            if (prop.dbProperty === orderBy) {
-                prop.sort = prop.sort === 'asc' ? 'desc' : 'asc';
-            }
-        });
-
-        setIsLoading(false);
-    }
-
-    function getHistoryList(): void {
-        setIsLoading(true);
-
-        const historyList = [];
-        for (let j = 0; j < 4; j++) {
-
-            const documents: TrazaType[] = [];
-
-            for (let i = 0; i < Math.floor(Math.random() * 5); i++) {
-                const document: TrazaType = {
-                    id: String(i + 1),
-                    folio: "Documento " + (i + 1),
-                    status: (i % 2 === 0 ? StatusType.ACTIVE : StatusType.INACTIVE),
-                };
-                documents.push(document);
-            }
-            historyList.push(documents);
-        }
-        setHistoryList(historyList);
-
-        setIsLoading(false);
-    }
-
-    useEffect(() => {
-        getHistoryList();
-    }, [])
-
     return (
-        <div className='grid mt-3'>
-            {historyList.map((history, index) => (
-                <Container key={index}>
-                    <Header title={'Traza ' + index}/>
-                    <SubHeader props={subheaderProps} onClick={(event) => handleSort(event)}/>
-                    {
-                        isLoading
-                            ? <Spinner/>
-                            : <List elements={{model: ModelType.TRACK, elements: history}}/>
-                    }
-                </Container>
-            ))}
-        </div>
-    )
+        <PageListTemplate props={pageProps}/>
+    );
 }
