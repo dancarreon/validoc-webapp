@@ -6,13 +6,14 @@ import {Spinner} from "../../components/Spinner.tsx";
 import {Button} from "../../components/Button.tsx";
 import {Toast} from "../../components/Toast.tsx";
 import {Alert} from "../../components/Alert.tsx";
-import {Path, SubmitHandler, useForm} from "react-hook-form";
+import {Path, PathValue, SubmitHandler, useForm} from "react-hook-form";
 import {ChangeEvent, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ZodType} from "zod";
-import {Dropdown, DropdownElement} from "../../components/Dropdown.tsx";
+import {DropdownElement} from "../../components/Dropdown.tsx";
 import {useNavigate} from "react-router";
 import {StatusType} from "../../api/types/status-type.ts";
+import {CustomDropdown} from "../../components/CustomDropdown.tsx";
 
 export type NewProps<T> = {
     title: string;
@@ -36,6 +37,8 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
         register,
         handleSubmit,
         formState: {errors},
+        setValue,
+        watch,
     } = useForm<T>({
         resolver: zodResolver(props.createZodSchema),
     });
@@ -83,9 +86,9 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
     }
 
     return (
-        <div className='h-[100%] content-center mt-3'>
+        <div className='h-[100%] content-center mt-3 w-full rounded-t'>
             <Container>
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={handleSubmit(onSubmit)} className='w-full'>
                     <Header title={props.title}>
                         <CheckInput label='Activo' name='status' onChange={handleChange}/>
                     </Header>
@@ -95,10 +98,12 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
                                 if (key !== 'status') {
                                     if (key.includes('Id')) {
                                         return (
-                                            <Dropdown key={key}
-                                                      placeholder={key}
-                                                      elements={props.lists || []}
-                                                      {...register(key as Path<T>)}/>
+                                            <CustomDropdown key={key}
+                                                            options={props.lists || []}
+                                                            placeholder={key}
+                                                            value={watch(key as Path<T>)}
+                                                            {...register(key as Path<T>)}
+                                                            onChange={(value: string) => setValue(key as Path<T>, value as PathValue<T, Path<T>>)}/>
                                         )
                                     } else {
                                         return (

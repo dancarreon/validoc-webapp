@@ -95,7 +95,7 @@ export const Placas = () => {
             <Container>
                 <Steps step={4} trazaId={params.id}/>
                 <Header title='Placas'/>
-                <form onSubmit={handleSubmit(onSubmit)} className='mt-5'>
+                <form onSubmit={handleSubmit(onSubmit)} className='mt-5 w-full'>
                     <TextInput type='text' placeholder='Número de Tractor'
                                {...register('numeroTractor')}/>
                     <TextInput type='text' placeholder='Placas Tractor'

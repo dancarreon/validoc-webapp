@@ -27,9 +27,9 @@ export const TextInput = ({type, name, placeholder, value, onChange, onBlur, ref
             />
             {
                 type !== 'hidden' &&
-				<label htmlFor={name} className='absolute left-3 md:left-10 -top-6.5 text-md text-gray-300
-            peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2
-            peer-placeholder-shown:left-5 md:peer-placeholder-shown:left-13 transition-all cursor-text'>
+				<label htmlFor={name} className='absolute left-3 md:left-10 sm:left-10 -top-6.5 text-md text-gray-300
+				peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-placeholder-shown:left-5
+				md:peer-placeholder-shown:left-13 sm:peer-placeholder-shown:left-13 transition-all cursor-text'>
                     {placeholder.includes('Id') ? placeholder[0].toUpperCase() + placeholder.slice(1).replace('Id', '') : placeholder[0].toUpperCase() + placeholder.slice(1)}
 				</label>
             }

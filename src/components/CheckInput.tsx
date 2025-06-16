@@ -1,13 +1,14 @@
 import * as React from "react";
 
-export const CheckInput = ({label, name, checked, onChange}: {
+export const CheckInput = ({label, name, checked, onChange, style = 'text-right pr-4 float-right'}: {
     label: string,
     name: string,
     checked?: boolean,
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    style?: string,
 }) => {
     return (
-        <div className='text-right pr-4 float-right'>
+        <div className={style}>
             <label className='text-white font-bold text-md mr-2 align-[-2.3px]'>{label}</label>
             <input type="checkbox"
                    checked={checked}

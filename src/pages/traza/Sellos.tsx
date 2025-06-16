@@ -150,7 +150,7 @@ export const Sellos = () => {
                         <Dice/>
                     </ButtonWithIcon>
                 </div>
-                <form onSubmit={handleSubmit(onSubmit)} className='mt-5'>
+                <form onSubmit={handleSubmit(onSubmit)} className='mt-5 w-full'>
                     <TextInput type='text' placeholder='Sello 1 Autotanque 1'
                                {...register('sello1Autotanque1')}/>
                     <TextInput type='text' placeholder='Sello 2 Autotanque 1'

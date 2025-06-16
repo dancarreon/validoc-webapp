@@ -23,6 +23,7 @@ export const Login = () => {
         <div className='h-[100vh] content-center'>
             <Container styles='m-auto pb-7'>
                 <Logo/>
+                <div className='bg-black w-full pb-6 mb-8 -mt-15 text-[54px] font-bold font-sans'>ValiDoc</div>
                 <form action={submit}>
                     <TextInput name='usuario' placeholder={'Usuario'}/>
                     <TextInput type={'password'} name='password' placeholder={'Contraseña'}/>

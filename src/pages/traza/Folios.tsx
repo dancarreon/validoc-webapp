@@ -147,7 +147,7 @@ export const Folios = () => {
                         <Dice/>
                     </ButtonWithIcon>
                 </div>
-                <form onSubmit={handleSubmit(onSubmit)} className='mt-5'>
+                <form onSubmit={handleSubmit(onSubmit)} className='mt-5 w-full'>
                     <TextInput type='text' placeholder='Folio PEMEX 1'
                                {...register('folioPemex1')}/>
                     <TextInput type='text' placeholder='Folio PEMEX 2'

@@ -12,7 +12,9 @@ import {CheckInput} from "../../components/CheckInput.tsx";
 import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {StatusType} from "../../api/types/status-type.ts";
-import {Dropdown, DropdownElement} from "../../components/Dropdown.tsx";
+import {DropdownElement} from "../../components/Dropdown.tsx";
+import {AreaText} from "../../components/AreaText.tsx";
+import {CustomDropdown} from "../../components/CustomDropdown.tsx";
 
 export type InfoProps<T> = {
     getRecord: (recordId: string) => Promise<T>;
@@ -28,6 +30,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
         handleSubmit,
         setValue,
         formState: {errors},
+        watch,
     } = useForm<T>({
         resolver: zodResolver(props.updateZodSchema),
     });
@@ -90,7 +93,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
     }
 
     useEffect(() => {
-        async function fetchUser() {
+        async function fetchRecord() {
             setIsLoading(true);
             const record: T = await props.getRecord(String(params.id));
             if (record) {
@@ -101,6 +104,9 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                 }
 
                 const keys: string[] = Object.keys(record);
+
+                console.log(Object.keys(record));
+
                 for (const key of keys) {
                     setValue(key as Path<T>, record[key as keyof T] as PathValue<T, Path<T>>);
                 }
@@ -108,14 +114,14 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
             }
         }
 
-        fetchUser().catch(console.error);
+        fetchRecord().catch(console.error);
     }, [params.id, props, setValue]);
 
     return (
-        <div className='h-[100%] content-center mt-3'>
+        <div className='h-[100%] content-center mt-3 w-full'>
             {params.id !== '' ? (
                 <Container>
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={handleSubmit(onSubmit)} className='w-full'>
                         <Header title={"name" in record ? (record.name as string | undefined) : ''}>
                             <CheckInput label='Activo' name='status' checked={isActive} onChange={handleStatus}/>
                         </Header>
@@ -129,15 +135,23 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                                         )
                                     } else if (key.includes('Id')) {
                                         return (
-                                            <Dropdown elements={props.lists || []} key={key}
-                                                      value={record[key as keyof T] as string}
-                                                      placeholder={key} {...register(key as Path<T>)}/>
+                                            <CustomDropdown
+                                                key={key}
+                                                placeholder={key}
+                                                value={watch(key as Path<T>)}
+                                                onChange={(value) => setValue(key as Path<T>, value as PathValue<T, Path<T>>)}
+                                                options={props.lists || []}
+                                            />
                                         )
-                                        /* TODO : add checkbox
-                                        } else if (key === 'generated') {
-                                            return (
-                                                <CheckInput label={key} name={key} checked={true}/>
-                                            )*/
+                                    } else if (key === 'direccion') {
+                                        return (
+                                            <AreaText key={key} placeholder={key} {...register(key as Path<T>)}/>
+                                        )
+                                    } else if (key === 'generated') {
+                                        return (
+                                            <CheckInput label={'Auto-generado'} name={key} checked={true}
+                                                        style='text-right pr-4 -mt-[10]'/>
+                                        )
                                     } else if (key !== 'status' && key !== 'id') {
                                         return (
                                             <TextInput key={key}

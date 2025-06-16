@@ -3,7 +3,7 @@ import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {Steps} from "../../components/Steps.tsx";
 import {Header} from "../../components/Header.tsx";
-import {Dropdown, DropdownElement} from "../../components/Dropdown.tsx";
+import {DropdownElement} from "../../components/Dropdown.tsx";
 import {useEffect, useState} from "react";
 import {getAllTads, getTotalTads, PAGE_SIZE} from "../../api/tads-api.ts";
 import {getAllClaves, getTotalClaves} from "../../api/claves-api.ts";
@@ -17,6 +17,7 @@ import {Alert} from "../../components/Alert.tsx";
 import {Spinner} from "../../components/Spinner.tsx";
 import {useNavigate, useParams} from "react-router";
 import {createTraza, getTraza, updateTraza} from "../../api/trazas-api.ts";
+import {CustomDropdown} from "../../components/CustomDropdown.tsx";
 
 export const NewTraza = () => {
 
@@ -96,7 +97,7 @@ export const NewTraza = () => {
             const dropdownTads = tads.map((tad) => {
                 return {
                     id: tad.id,
-                    name: tad.ciudad + ' - ' + tad.estado?.name,
+                    name: tad.estado?.name + ' - ' + tad.ciudad,
                 } as DropdownElement;
             });
             setTads(dropdownTads);
@@ -217,19 +218,31 @@ export const NewTraza = () => {
     return (
         <div className='h-[100%] content-center mt-3'>
             <Container>
-                <div className='bg-[#3F3F3F] rounded-t-lg mb-0'>
+                <div className='bg-[#3F3F3F] rounded-t-lg mb-0 w-full'>
                     <Steps step={1} trazaId={params.id}/>
                     <Header title='Datos Nacional'/>
                 </div>
-                <form onSubmit={handleSubmit(onSubmit)} className='mt-5'>
-                    <Dropdown elements={tads} placeholder='TAD Dirección'
-                              {...register('tadDireccionId')}/>
-                    <Dropdown elements={claves} placeholder='Clave Concentradora'
-                              {...register('claveConcentradoraId')}/>
-                    <Dropdown elements={razones} placeholder='Razón Social Comercial'
-                              {...register('razonSocialComercialId')}/>
-                    <Dropdown elements={productos} placeholder='Producto'
-                              {...register('productoId')}/>
+                <form onSubmit={handleSubmit(onSubmit)} className='mt-5 w-full'>
+                    <CustomDropdown options={tads}
+                                    placeholder='TAD Dirección'
+                                    value={watch('tadDireccionId')}
+                                    {...register('tadDireccionId')}
+                                    onChange={(value) => setValue('tadDireccionId', value)}/>
+                    <CustomDropdown options={claves}
+                                    placeholder='Clave Concentradora'
+                                    value={watch('claveConcentradoraId')}
+                                    {...register('claveConcentradoraId')}
+                                    onChange={(value) => setValue('claveConcentradoraId', value)}/>
+                    <CustomDropdown options={razones}
+                                    placeholder='Razón Social Comercial'
+                                    value={watch('razonSocialComercialId')}
+                                    {...register('razonSocialComercialId')}
+                                    onChange={(value) => setValue('razonSocialComercialId', value)}/>
+                    <CustomDropdown options={productos}
+                                    placeholder='Producto'
+                                    value={watch('productoId')}
+                                    {...register('productoId')}
+                                    onChange={(value) => setValue('productoId', value)}/>
                     <TextInput type='text' placeholder='Cap. Autotanque 1'
                                {...register('capAutotanque1')}/>
                     <TextInput type='text' placeholder='Cap. Autotanque 2'
