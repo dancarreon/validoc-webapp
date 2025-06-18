@@ -41,3 +41,12 @@
     80% { opacity: 1 }
     100% { opacity: 0 }
 }
+
+.react-pdf__Page__textContent {
+    pointer-events: none !important;
+}
+
+.pdf-overlay,
+.pdf-overlay * {
+    pointer-events: auto !important;
+}

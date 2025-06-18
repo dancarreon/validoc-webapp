@@ -10,10 +10,9 @@ import {Path, PathValue, SubmitHandler, useForm} from "react-hook-form";
 import {ChangeEvent, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ZodType} from "zod";
-import {DropdownElement} from "../../components/Dropdown.tsx";
 import {useNavigate} from "react-router";
 import {StatusType} from "../../api/types/status-type.ts";
-import {CustomDropdown} from "../../components/CustomDropdown.tsx";
+import {CustomDropdown, DropdownElement} from "../../components/CustomDropdown.tsx";
 
 export type NewProps<T> = {
     title: string;

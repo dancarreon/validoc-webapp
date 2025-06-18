@@ -2,8 +2,8 @@ import {UpdateTadSchema, UpdateTadType} from "../../../api/types/tad-types.ts";
 import {getTad, updateTad} from "../../../api/tads-api.ts";
 import {InfoProps, PageInfoTemplate} from "../../templates/PageInfoTemplate.tsx";
 import {useEffect, useState} from "react";
-import {DropdownElement} from "../../../components/Dropdown.tsx";
 import {getAllStates, getTotalStates} from "../../../api/states-api.ts";
+import {DropdownElement} from "../../../components/CustomDropdown.tsx";
 
 const infoProps = {
     getRecord: getTad,

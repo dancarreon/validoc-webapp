@@ -31,6 +31,7 @@ import {Transportistas} from "./pages/admin/transportistas/Transportistas.tsx";
 import {TransportistaInfo} from "./pages/admin/transportistas/TransportistaInfo.tsx";
 import {NewTransportista} from "./pages/admin/transportistas/NewTransportista.tsx";
 import {Placas} from "./pages/traza/Placas.tsx";
+import {PdfManager} from "./pages/pdf/PDFManager.tsx";
 
 const App = () => {
     return (
@@ -94,6 +95,8 @@ const App = () => {
                     <Route path="placas/:id" element={<Placas/>}/>
                     <Route path="docs" element={<TrazaDocs/>}/>
                     <Route path="docs/:id" element={<TrazaDocs/>}/>
+                    {/*Admin PDFs*/}
+                    <Route path="pdfs" element={<PdfManager/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>

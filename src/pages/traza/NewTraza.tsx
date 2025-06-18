@@ -3,7 +3,6 @@ import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {Steps} from "../../components/Steps.tsx";
 import {Header} from "../../components/Header.tsx";
-import {DropdownElement} from "../../components/Dropdown.tsx";
 import {useEffect, useState} from "react";
 import {getAllTads, getTotalTads, PAGE_SIZE} from "../../api/tads-api.ts";
 import {getAllClaves, getTotalClaves} from "../../api/claves-api.ts";
@@ -17,7 +16,9 @@ import {Alert} from "../../components/Alert.tsx";
 import {Spinner} from "../../components/Spinner.tsx";
 import {useNavigate, useParams} from "react-router";
 import {createTraza, getTraza, updateTraza} from "../../api/trazas-api.ts";
-import {CustomDropdown} from "../../components/CustomDropdown.tsx";
+import {CustomDropdown, DropdownElement} from "../../components/CustomDropdown.tsx";
+import {NewRecordIcon} from "../../components/icons/NewRecordIcon.tsx";
+import {DeleteRecordIcon} from "../../components/icons/DeleteRecordIcon.tsx";
 
 export const NewTraza = () => {
 
@@ -33,6 +34,7 @@ export const NewTraza = () => {
     const [traza, setTraza] = useState<TrazaType | null>(null);
     const navigate = useNavigate();
     const params = useParams();
+    const [capCount, setCapCount] = useState(1);
 
     let isAdmin = false;
 
@@ -243,12 +245,36 @@ export const NewTraza = () => {
                                     value={watch('productoId')}
                                     {...register('productoId')}
                                     onChange={(value) => setValue('productoId', value)}/>
-                    <TextInput type='text' placeholder='Cap. Autotanque 1'
-                               {...register('capAutotanque1')}/>
-                    <TextInput type='text' placeholder='Cap. Autotanque 2'
-                               {...register('capAutotanque2')}/>
-                    <TextInput type='text' placeholder='Cap. Autotanque 3'
-                               {...register('capAutotanque3')}/>
+                    <div className="block items-center gap-2">
+                        {[...Array(capCount)].map((_, idx) => (
+                            <TextInput
+                                key={idx}
+                                type='text'
+                                placeholder={`Cap. Autotanque ${idx + 1}`}
+                                {...register(`capAutotanque${idx + 1}` as const)}
+                            />
+                        ))}
+                        <div className='flex justify-between items-center mt-2 mx-10'>
+                            <button
+                                type="button"
+                                className={"pt-1 " + (capCount > 1 ? 'cursor-pointer' : 'cursor-not-allowed')}
+                                onClick={() => setCapCount(c => (c <= 4 && c > 1 ? c - 1 : c))}
+                                aria-label="Remueve Cap Autotanque"
+                                disabled={capCount <= 1}
+                            >
+                                <DeleteRecordIcon bgColor={capCount > 1 ? 'EC3113' : '000'}/>
+                            </button>
+                            <button
+                                type="button"
+                                className={"pt-1 " + (capCount < 4 ? 'cursor-pointer' : 'cursor-not-allowed')}
+                                onClick={() => setCapCount(c => (c < 4 ? c + 1 : c))}
+                                aria-label="Agrega Cap Autotanque"
+                                disabled={capCount >= 4}
+                            >
+                                <NewRecordIcon bgColor={capCount < 4 ? 'EC3113' : '000'}/>
+                            </button>
+                        </div>
+                    </div>
                     <TextInput type='text' placeholder='Litros Totales' value={String(totalLitros)} readOnly={true}
                                {...register('litrosTotales')}/>
                     <TextInput type='text' placeholder='Precio/Lt Cliente'

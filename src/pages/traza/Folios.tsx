@@ -74,7 +74,7 @@ export const Folios = () => {
     }
 
     function generaFolioFiscal(): string {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const chars = 'ABCDEF0123456789';
 
         // Define the pattern for the license key parts
         const pattern = [8, 4, 4, 4, 12];

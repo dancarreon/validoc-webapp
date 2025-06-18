@@ -3,7 +3,7 @@ import {createTad} from "../../../api/tads-api.ts";
 import {Tad, TadSchema, TadType} from "../../../api/types/tad-types.ts";
 import {useEffect, useState} from "react";
 import {getAllStates, getTotalStates} from "../../../api/states-api.ts";
-import {DropdownElement} from "../../../components/Dropdown.tsx";
+import {DropdownElement} from "../../../components/CustomDropdown.tsx";
 
 const newProps = {
     title: 'Nuevo TAD',
