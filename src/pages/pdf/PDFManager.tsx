@@ -18,5 +18,5 @@ export const PdfManager = () => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};

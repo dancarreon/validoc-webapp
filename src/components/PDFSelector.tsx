@@ -7,6 +7,7 @@ export const PdfSelector = ({onFileSelect}: { onFileSelect: (file: File) => void
                 onFileSelect(e.target.files[0]);
             }
         }}
-        className="file-input file-input-bordered"
+        placeholder="Selecciona un archivo PDF"
+        className="file-input file-input-bordered file-input-neutral w-full max-w-xs mt-4 bg-gray-500"
     />
 );
