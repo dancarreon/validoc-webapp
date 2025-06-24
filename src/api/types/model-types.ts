@@ -7,4 +7,5 @@ export enum ModelType {
     RAZON = 'razon',
     PRODUCT = 'product',
     TRANSPORTISTA = 'transportista',
+    TEMPLATE = 'template',
 }

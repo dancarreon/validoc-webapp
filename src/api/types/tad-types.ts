@@ -19,6 +19,7 @@ export class Tad implements Omit<TadType, 'id' | 'createdAt' | 'updatedAt'> {
     }
 
     estadoId!: string;
+    estado: StateType | undefined;
     ciudad!: string;
     status!: StatusType;
     direccion!: string;

@@ -48,6 +48,8 @@ export const List = <T extends object>({elements, cols = 2}: {
                 navigate(path + '/products/' + element.id);
             } else if (model === ModelType.TRANSPORTISTA) {
                 navigate(path + '/transportistas/' + element.id);
+            } else if (model === ModelType.TEMPLATE) {
+                navigate(path + '/pdfs/' + element.id);
             }
         }
     }

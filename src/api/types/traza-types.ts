@@ -1,5 +1,9 @@
 import {StatusType} from "./status-type.ts";
 import {z, ZodType} from "zod";
+import {Tad} from "./tad-types.ts";
+import {Clave} from "./clave-types.ts";
+import {Razon} from "./razon-types.ts";
+import {Product} from "./product-types.ts";
 
 export interface TrazaType {
     id: string;
@@ -56,9 +60,13 @@ export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> 
 
     status!: StatusType;
     tadDireccionId!: string;
+    tadDireccion: Tad | undefined;
     claveConcentradoraId!: string;
+    claveConcentradora: Clave | undefined;
     razonSocialComercialId!: string;
+    razonSocialComercial: Razon | undefined;
     productoId!: string;
+    producto: Product | undefined;
     capAutotanque1!: number | null;
     capAutotanque2!: number | null;
     capAutotanque3!: number | null;

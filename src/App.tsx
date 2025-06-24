@@ -32,74 +32,77 @@ import {TransportistaInfo} from "./pages/admin/transportistas/TransportistaInfo.
 import {NewTransportista} from "./pages/admin/transportistas/NewTransportista.tsx";
 import {Placas} from "./pages/traza/Placas.tsx";
 import {PdfManager} from "./pages/pdf/PDFManager.tsx";
+import {ListPdf} from "./pages/pdf/ListPDF.tsx";
 
 const App = () => {
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Layout/>}>
-                    <Route index element={<Login/>}/>
-                </Route>
+	return (
+		<BrowserRouter>
+			<Routes>
+				<Route path="/" element={<Layout/>}>
+					<Route index element={<Login/>}/>
+				</Route>
 
-                {/* User Routes */}
-                <Route path="user" element={<Layout showMenu/>}>
-                    <Route index element={<MenuUser/>}/>
-                    <Route path="datos-nacional" element={<NewTraza/>}/>
-                    <Route path="sellos" element={<Sellos/>}/>
-                    <Route path="folios" element={<Folios/>}/>
-                    <Route path="traza" element={<TrazaDocs/>}/>
-                    <Route path="traza/:id" element={<TrazaDocs/>}/>
-                    <Route path="historial" element={<History/>}/>
-                </Route>
+				{/* User Routes */}
+				<Route path="user" element={<Layout showMenu/>}>
+					<Route index element={<MenuUser/>}/>
+					<Route path="datos-nacional" element={<NewTraza/>}/>
+					<Route path="sellos" element={<Sellos/>}/>
+					<Route path="folios" element={<Folios/>}/>
+					<Route path="traza" element={<TrazaDocs/>}/>
+					<Route path="traza/:id" element={<TrazaDocs/>}/>
+					<Route path="historial" element={<History/>}/>
+				</Route>
 
-                {/* Admin Routes */}
-                <Route path="admin" element={<Layout showMenu isAdmin/>}>
-                    <Route index element={<MenuAdmin/>}/>
-                    {/*Admin Users*/}
-                    <Route path="usuarios" element={<Users/>}/>
-                    <Route path="usuario/:id" element={<UserInfo/>}/>
-                    <Route path="nuevo-usuario" element={<NewUser/>}/>
-                    {/*Admin States*/}
-                    <Route path="estados" element={<States/>}/>
-                    <Route path="estados/:id" element={<StateInfo/>}/>
-                    <Route path="nuevo-estado" element={<NewState/>}/>
-                    {/*Admin Tads*/}
-                    <Route path="tads" element={<Tads/>}/>
-                    <Route path="tads/:id" element={<TadInfo/>}/>
-                    <Route path="nuevo-tad" element={<NewTad/>}/>
-                    {/*Admin Claves*/}
-                    <Route path="claves" element={<Claves/>}/>
-                    <Route path="claves/:id" element={<ClaveInfo/>}/>
-                    <Route path="nueva-clave" element={<NewClave/>}/>
-                    {/*Admin Razones*/}
-                    <Route path="razones" element={<Razones/>}/>
-                    <Route path="razones/:id" element={<RazonInfo/>}/>
-                    <Route path="nueva-razon" element={<NewRazon/>}/>
-                    {/*Admin Prodcuts*/}
-                    <Route path="products" element={<Products/>}/>
-                    <Route path="products/:id" element={<ProductInfo/>}/>
-                    <Route path="nuevo-producto" element={<NewProduct/>}/>
-                    {/*Admin Transportistas*/}
-                    <Route path="transportistas" element={<Transportistas/>}/>
-                    <Route path="transportistas/:id" element={<TransportistaInfo/>}/>
-                    <Route path="nuevo-transportista" element={<NewTransportista/>}/>
-                    {/*Admin History/Tracks/Documents*/}
-                    <Route path="historial" element={<History/>}/>
-                    <Route path="traza" element={<NewTraza/>}/>
-                    <Route path="traza/:id" element={<NewTraza/>}/>
-                    <Route path="sellos" element={<Sellos/>}/>
-                    <Route path="sellos/:id" element={<Sellos/>}/>
-                    <Route path="folios" element={<Folios/>}/>
-                    <Route path="folios/:id" element={<Folios/>}/>
-                    <Route path="placas" element={<Placas/>}/>
-                    <Route path="placas/:id" element={<Placas/>}/>
-                    <Route path="docs" element={<TrazaDocs/>}/>
-                    <Route path="docs/:id" element={<TrazaDocs/>}/>
-                    {/*Admin PDFs*/}
-                    <Route path="pdfs" element={<PdfManager/>}/>
-                </Route>
-            </Routes>
-        </BrowserRouter>
-    )
+				{/* Admin Routes */}
+				<Route path="admin" element={<Layout showMenu isAdmin/>}>
+					<Route index element={<MenuAdmin/>}/>
+					{/*Admin Users*/}
+					<Route path="usuarios" element={<Users/>}/>
+					<Route path="usuario/:id" element={<UserInfo/>}/>
+					<Route path="nuevo-usuario" element={<NewUser/>}/>
+					{/*Admin States*/}
+					<Route path="estados" element={<States/>}/>
+					<Route path="estados/:id" element={<StateInfo/>}/>
+					<Route path="nuevo-estado" element={<NewState/>}/>
+					{/*Admin Tads*/}
+					<Route path="tads" element={<Tads/>}/>
+					<Route path="tads/:id" element={<TadInfo/>}/>
+					<Route path="nuevo-tad" element={<NewTad/>}/>
+					{/*Admin Claves*/}
+					<Route path="claves" element={<Claves/>}/>
+					<Route path="claves/:id" element={<ClaveInfo/>}/>
+					<Route path="nueva-clave" element={<NewClave/>}/>
+					{/*Admin Razones*/}
+					<Route path="razones" element={<Razones/>}/>
+					<Route path="razones/:id" element={<RazonInfo/>}/>
+					<Route path="nueva-razon" element={<NewRazon/>}/>
+					{/*Admin Prodcuts*/}
+					<Route path="products" element={<Products/>}/>
+					<Route path="products/:id" element={<ProductInfo/>}/>
+					<Route path="nuevo-producto" element={<NewProduct/>}/>
+					{/*Admin Transportistas*/}
+					<Route path="transportistas" element={<Transportistas/>}/>
+					<Route path="transportistas/:id" element={<TransportistaInfo/>}/>
+					<Route path="nuevo-transportista" element={<NewTransportista/>}/>
+					{/*Admin History/Tracks/Documents*/}
+					<Route path="historial" element={<History/>}/>
+					<Route path="traza" element={<NewTraza/>}/>
+					<Route path="traza/:id" element={<NewTraza/>}/>
+					<Route path="sellos" element={<Sellos/>}/>
+					<Route path="sellos/:id" element={<Sellos/>}/>
+					<Route path="folios" element={<Folios/>}/>
+					<Route path="folios/:id" element={<Folios/>}/>
+					<Route path="placas" element={<Placas/>}/>
+					<Route path="placas/:id" element={<Placas/>}/>
+					<Route path="docs" element={<TrazaDocs/>}/>
+					<Route path="docs/:id" element={<TrazaDocs/>}/>
+					{/*Admin PDFs*/}
+					<Route path="nuevo-pdf" element={<PdfManager/>}/>
+					<Route path="pdfs/:id" element={<PdfManager/>}/>
+					<Route path="pdfs" element={<ListPdf/>}/>
+				</Route>
+			</Routes>
+		</BrowserRouter>
+	)
 }
 export default App
