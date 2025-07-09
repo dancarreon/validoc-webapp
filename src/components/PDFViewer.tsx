@@ -606,7 +606,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					</div>
 				</div>
 				<div ref={containerRef}
-					 className={`relative border rounded shadow overflow-auto ${isSelecting ? 'noselect' : ''} w-full max-w-[100] h-[100%] bg-[#f8f8f8]`}
+					 className={`relative border rounded shadow overflow-auto ${isSelecting ? 'noselect' : ''} w-full h-[100%] bg-[#f8f8f8]`}
 					 onClick={handleContainerClick}
 					 onMouseDown={handleMouseDown}
 					 onMouseMove={handleMouseMove}
