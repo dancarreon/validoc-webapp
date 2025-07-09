@@ -612,7 +612,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					 onMouseMove={handleMouseMove}
 					 onMouseUp={handleMouseUp}>
 					{containerWidth && (
-						<canvas ref={canvasRef} onClick={handleClick}/>
+						<canvas className='w-full' ref={canvasRef} onClick={handleClick}/>
 					)}
 					{/*<Document file={file}>
 						<Page pageNumber={1} width={containerWidth * scale}/>
