@@ -231,7 +231,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 	// Load and render PDF to canvas
 	useEffect(() => {
-		let renderTask: never = null;
+		let renderTask: never | any = null;
 
 		async function renderPdf() {
 			if (!file || !canvasRef.current || !containerWidth) return;
