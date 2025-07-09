@@ -14,6 +14,7 @@ export interface TrazaType {
     capAutotanque1?: number | null;
     capAutotanque2?: number | null;
     capAutotanque3?: number | null;
+    capAutotanque4?: number | null;
     litrosTotales?: number | null;
     precioLitro?: number | null;
     destino?: string | null;
@@ -70,6 +71,7 @@ export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> 
     capAutotanque1!: number | null;
     capAutotanque2!: number | null;
     capAutotanque3!: number | null;
+    capAutotanque4!: number | null;
     litrosTotales!: number | null;
     precioLitro!: number | null;
     destino!: string | null;
@@ -118,6 +120,7 @@ export const TrazaSchema: ZodType = z.object({
     capAutotanque1: z.coerce.number().nullable().optional(),
     capAutotanque2: z.coerce.number().nullable().optional(),
     capAutotanque3: z.coerce.number().nullable().optional(),
+    capAutotanque4: z.coerce.number().nullable().optional(),
     litrosTotales: z.coerce.number().nullable().optional(),
     precioLitro: z.coerce.number().nullable().optional(),
     destino: z.string().nullable().optional(),

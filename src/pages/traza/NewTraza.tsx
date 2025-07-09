@@ -175,13 +175,22 @@ export const NewTraza = () => {
         async function fetchTraza() {
             if (params.id) {
                 setIsLoading(true);
-                const traza = await getTraza(params.id);
+                const traza: TrazaType = await getTraza(params.id);
                 setTraza(traza);
 
                 const keys: string[] = Object.keys(traza);
                 for (const key of keys) {
                     setValue(key as Path<TrazaType>, traza[key as keyof TrazaType]);
                 }
+
+                // Set capCount based on non-empty capAutotanque fields
+                const capFields = ['capAutotanque1', 'capAutotanque2', 'capAutotanque3', 'capAutotanque4'];
+                let count = 0;
+                capFields.forEach(field => {
+                    if (traza[field as keyof TrazaType]) count++;
+                });
+                setCapCount(count > 0 ? count : 1);
+
                 setIsLoading(false);
             }
         }

@@ -5,7 +5,7 @@ import {MenuUser} from "./pages/user/MenuUser.tsx";
 import {NewTraza} from "./pages/traza/NewTraza.tsx";
 import {Sellos} from "./pages/traza/Sellos.tsx";
 import {Folios} from "./pages/traza/Folios.tsx";
-import {TrazaDocs} from "./pages/traza/TrazaDocs.tsx";
+import {Docs} from "./pages/traza/Docs.tsx";
 import {History} from "./pages/user/History.tsx";
 import {MenuAdmin} from "./pages/admin/MenuAdmin.tsx";
 import {Users} from "./pages/admin/users/Users.tsx";
@@ -48,8 +48,8 @@ const App = () => {
 					<Route path="datos-nacional" element={<NewTraza/>}/>
 					<Route path="sellos" element={<Sellos/>}/>
 					<Route path="folios" element={<Folios/>}/>
-					<Route path="traza" element={<TrazaDocs/>}/>
-					<Route path="traza/:id" element={<TrazaDocs/>}/>
+					<Route path="traza" element={<Docs/>}/>
+					<Route path="traza/:id" element={<Docs/>}/>
 					<Route path="historial" element={<History/>}/>
 				</Route>
 
@@ -94,8 +94,8 @@ const App = () => {
 					<Route path="folios/:id" element={<Folios/>}/>
 					<Route path="placas" element={<Placas/>}/>
 					<Route path="placas/:id" element={<Placas/>}/>
-					<Route path="docs" element={<TrazaDocs/>}/>
-					<Route path="docs/:id" element={<TrazaDocs/>}/>
+					<Route path="docs" element={<Docs/>}/>
+					<Route path="docs/:id" element={<Docs/>}/>
 					{/*Admin PDFs*/}
 					<Route path="nuevo-pdf" element={<PdfManager/>}/>
 					<Route path="pdfs/:id" element={<PdfManager/>}/>

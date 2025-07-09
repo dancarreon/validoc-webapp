@@ -22,6 +22,9 @@ export async function createTemplate(data: CreateTemplateType): Promise<Template
 export async function getTemplateFile(fileName: string): Promise<Blob> {
 	const response = await axios.get(`${API_URL}/file/${fileName}`, {
 		responseType: 'blob',
+	}).catch(error => {
+		console.error('Error fetching template file:', error);
+		throw new Error('Failed to fetch template file');
 	});
 	return new Blob([response.data], {type: 'application/pdf'});
 }

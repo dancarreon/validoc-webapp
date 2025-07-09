@@ -12,6 +12,7 @@ export interface TemplateFieldType {
     fontFamily: string;
     fontSize: number;
     align: string;
+    color?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -30,4 +31,5 @@ export class TemplateField implements Omit<TemplateFieldType, 'createdAt' | 'upd
     fontFamily!: string;
     fontSize!: number;
     align!: string;
+    color?: string;
 }
