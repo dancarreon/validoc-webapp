@@ -5,11 +5,12 @@ import {z, ZodType} from "zod";
 export interface TemplateType {
 	id: string;
 	name: string;
-	createdAt: Date;
-	updatedAt: Date;
 	status: StatusType;
 	fields: TemplateField[];
 	pdfFile: string;
+	containerWidth?: number;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export class Template implements Omit<TemplateType, 'id' | 'createdAt' | 'updatedAt'> {
@@ -21,6 +22,7 @@ export class Template implements Omit<TemplateType, 'id' | 'createdAt' | 'update
 	name!: string;
 	fields!: TemplateField[];
 	pdfFile!: string;
+	containerWidth?: number | undefined;
 }
 
 export type CreateTemplateType = Omit<TemplateType, 'id' | 'createdAt' | 'updatedAt'>;

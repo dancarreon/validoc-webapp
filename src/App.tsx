@@ -33,6 +33,9 @@ import {NewTransportista} from "./pages/admin/transportistas/NewTransportista.ts
 import {Placas} from "./pages/traza/Placas.tsx";
 import {PdfManager} from "./pages/pdf/PDFManager.tsx";
 import {ListPdf} from "./pages/pdf/ListPDF.tsx";
+import {Clientes} from "./pages/admin/clients/Clients.tsx";
+import {ClientInfo} from "./pages/admin/clients/ClientInfo.tsx";
+import {NewClient} from "./pages/admin/clients/NewClient.tsx";
 
 const App = () => {
 	return (
@@ -100,6 +103,10 @@ const App = () => {
 					<Route path="nuevo-pdf" element={<PdfManager/>}/>
 					<Route path="pdfs/:id" element={<PdfManager/>}/>
 					<Route path="pdfs" element={<ListPdf/>}/>
+					{/*Admin Clientes*/}
+					<Route path="clientes" element={<Clientes/>}/>
+					<Route path="clientes/:id" element={<ClientInfo/>}/>
+					<Route path="nuevo-cliente" element={<NewClient/>}/>
 				</Route>
 			</Routes>
 		</BrowserRouter>

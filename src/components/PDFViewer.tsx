@@ -1,8 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-//import {Document, Page} from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import {PDFDocument, PDFFont, rgb, StandardFonts} from 'pdf-lib';
 import {ContextMenu} from './ContextMenu.tsx';
 import {Traza, TrazaType} from '../api/types/traza-types.ts';
 import {FieldOverlay} from './FieldOverlay.tsx';
@@ -16,6 +14,7 @@ import {Spinner} from "./Spinner.tsx";
 import {useNavigate} from "react-router";
 import {pdfjs} from "react-pdf"
 import 'pdfjs-dist/web/pdf_viewer.css';
+import {createPdfWithFields} from '../utils/pdfUtils';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -26,9 +25,9 @@ export type Field = {
 	width: number;
 	height: number;
 	name: keyof TrazaType;
-	fontFamily?: 'Helvetica' | 'Courier';
+	fontFamily?: string; //'Helvetica' | 'Courier' | undefined;
 	fontSize?: number;
-	align?: 'left' | 'center' | 'right';
+	align?: string; //'left' | 'center' | 'right';
 	saved?: boolean;
 	backgroundColor?: string;
 };
@@ -43,7 +42,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 	const [fields, setFields] = useState<Field[]>([]);
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [containerWidth, setContainerWidth] = useState<number | null>(null);
+	const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
 	const [drawing, setDrawing] = useState<{ x: number; y: number } | null>(null);
 	const [rect, setRect] = useState<Partial<Field> | null>(null);
 	const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
@@ -129,6 +128,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				if (uploadFileName) {
 
 					templateData.pdfFile = uploadFileName;
+					templateData.containerWidth = containerWidth ?? undefined;
 
 					const newTemplate: TemplateType = await createTemplate(templateData);
 					if (newTemplate) {
@@ -231,7 +231,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 	// Load and render PDF to canvas
 	useEffect(() => {
-		let renderTask: never | any = null;
 
 		async function renderPdf() {
 			if (!file || !canvasRef.current || !containerWidth) return;
@@ -264,9 +263,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 			// Render PDF (no context.save/translate/scale)
 			const renderViewport = page.getViewport({scale: displayWidth / viewport.width});
-			renderTask = page.render({canvasContext: context, viewport: renderViewport});
+			const renderTask = page.render({canvasContext: context, viewport: renderViewport});
 
-			await renderTask.promise;
+			await renderTask?.promise;
 
 			// Wait 300ms after rendering is complete
 			setTimeout(() => {
@@ -275,10 +274,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		}
 
 		renderPdf();
-
-		return () => {
-			if (renderTask) renderTask.cancel();
-		};
 	}, [file, scale, containerWidth]);
 
 	// Reset picking color after 3 seconds
@@ -288,6 +283,41 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			return () => clearTimeout(timeout);
 		}
 	}, [pickingColorForField]);
+
+	// text selection to field
+	useEffect(() => {
+		function handleTextSelection() {
+			const selection = window.getSelection();
+			if (!selection || selection.isCollapsed) return;
+
+			const range = selection.getRangeAt(0);
+			const rect = range.getBoundingClientRect();
+			if (!rect || !containerRef.current) return;
+
+			const containerRect = containerRef.current.getBoundingClientRect();
+			// Only proceed if selection is inside the PDF container
+			if (
+				rect.left >= containerRect.left &&
+				rect.right <= containerRect.right &&
+				rect.top >= containerRect.top &&
+				rect.bottom <= containerRect.bottom
+			) {
+				// Convert to PDF coordinates
+				const x = (rect.left - containerRect.left + containerRef.current.scrollLeft) / scale;
+				const y = (rect.top - containerRect.top + containerRef.current.scrollTop) / scale;
+				const width = rect.width / scale;
+				const height = rect.height / scale;
+
+				setPendingFieldRect({x, y, width, height});
+				setPendingField({x, y, width, height});
+				// Optionally, clear the selection
+				selection.removeAllRanges();
+			}
+		}
+
+		document.addEventListener('mouseup', handleTextSelection);
+		return () => document.removeEventListener('mouseup', handleTextSelection);
+	}, [scale]);
 
 	const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
 		const canvas = canvasRef.current;
@@ -438,83 +468,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		setFields(fields => fields.filter(f => f.id !== id));
 	}, []);
 
-	async function createPdfWithFields(file: File | string, fields: Field[]) {
-		const arrayBuffer = typeof file === 'string'
-			? await fetch(file).then(res => res.arrayBuffer())
-			: await file.arrayBuffer();
-		const pdfDoc = await PDFDocument.load(arrayBuffer);
-		const fontCache: Record<string, PDFFont> = {};
-		const page = pdfDoc.getPage(0);
-
-		const pdfWidth = page.getWidth();
-		const pdfHeight = page.getHeight();
-		// Use unscaled container width for correct mapping
-		let renderedWidth = 0;
-		if (containerWidth !== null) {
-			renderedWidth = containerWidth;
-		}
-		let renderedHeight = 0;
-		if (renderedWidth !== null) {
-			renderedHeight = renderedWidth * (pdfHeight / pdfWidth);
-		}
-		const scaleX = pdfWidth / renderedWidth;
-		const scaleY = pdfHeight / renderedHeight;
-
-		for (const field of fields) {
-			const family = field.fontFamily || 'Helvetica';
-			if (!fontCache[family]) {
-				fontCache[family] = await pdfDoc.embedFont(StandardFonts[family]);
-			}
-			const font = fontCache[family];
-			const size = field.fontSize || 6;
-
-			let pdfX = field.x * scaleX;
-			const pdfW = field.width * scaleX;
-			const pdfH = field.height * scaleY;
-
-			// Align text at the top of the field
-			const fieldTopY = pdfHeight - (field.y * scaleY);
-			const pdfY = fieldTopY - size + (size * 0.2);
-
-			const text = String(field.name);
-
-			const textWidth = font.widthOfTextAtSize(text, size);
-			if (field.align === 'center') {
-				pdfX += (pdfW - textWidth) / 2;
-			} else if (field.align === 'right') {
-				pdfX += pdfW - textWidth;
-			}
-
-			page.drawRectangle({
-				x: field.x * scaleX,
-				y: fieldTopY - pdfH,
-				width: pdfW,
-				height: pdfH,
-				color: field.backgroundColor
-					? rgb(
-						parseInt(field.backgroundColor.slice(1, 3), 16) / 255,
-						parseInt(field.backgroundColor.slice(3, 5), 16) / 255,
-						parseInt(field.backgroundColor.slice(5, 7), 16) / 255
-					)
-					: rgb(1, 1, 1),
-			});
-
-			page.drawText(text, {
-				x: pdfX,
-				y: pdfY,
-				size,
-				font,
-				color: rgb(0, 0, 0),
-				maxWidth: pdfW,
-			});
-		}
-
-		const pdfBytes = await pdfDoc.save();
-		const blob = new Blob([pdfBytes], {type: 'application/pdf'});
-		const url = URL.createObjectURL(blob);
-		window.open(url);
-	}
-
 	const handleFieldContextMenu = useCallback((e: React.MouseEvent, fieldId: string) => {
 		e.preventDefault();
 		setContextMenu({x: e.clientX, y: e.clientY, fieldId});
@@ -598,7 +551,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 									</button>
 									<button type='button'
 											className="ml-2 px-2 py-1 bg-green-600 text-white rounded"
-											onClick={() => createPdfWithFields(file!, fields)}>
+											onClick={() => createPdfWithFields(file!, fields, containerWidth)}>
 										Generar PDF con Etiquetas
 									</button>
 								</>
@@ -606,7 +559,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					</div>
 				</div>
 				<div ref={containerRef}
-					 className={`relative border rounded shadow overflow-auto ${isSelecting ? 'noselect' : ''} w-full h-[100%] bg-[#f8f8f8]`}
+					 className={`relative border rounded shadow overflow-auto w-full h-[100%] bg-[#f8f8f8]${!isSelecting ? ' noselect' : ''}`}
 					 onClick={handleContainerClick}
 					 onMouseDown={handleMouseDown}
 					 onMouseMove={handleMouseMove}

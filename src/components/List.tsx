@@ -10,19 +10,24 @@ import {TransportistaType} from "../api/types/transportista-types.ts";
 import {FileIcon} from "./icons/FileIcon.tsx";
 import {TemplateType} from "../api/types/template-type.ts";
 import {StatusType} from "../api/types/status-type.ts";
+import {ClientType} from "../api/types/client-types.ts";
+import * as React from "react";
 
 export type ListType<T> = {
 	model: ModelType;
-	elements: UserType[] | TrazaType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | TransportistaType[] | TemplateType[] | T[];
+	elements: UserType[] | TrazaType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | TransportistaType[] | TemplateType[] | ClientType[] | T[];
 }
 
 export const List = <T extends object>(
 	{
-		elements, cols = 2
+		elements, cols = 2, onClick, selected = null, onChange
 	}:
 	{
 		elements: ListType<T>,
 		cols?: number,
+		onClick?: (element: T) => void,
+		selected?: string[] | null,
+		onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
 	}
 ) => {
 
@@ -34,7 +39,7 @@ export const List = <T extends object>(
 		isAdmin = true;
 	}
 
-	const handleClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType) => {
+	const handleClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType) => {
 		const path: string = isAdmin ? "/admin" : "/user";
 
 		if ("id" in element) {
@@ -56,11 +61,13 @@ export const List = <T extends object>(
 				navigate(path + '/transportistas/' + element.id);
 			} else if (model === ModelType.TEMPLATE) {
 				navigate(path + '/pdfs/' + element.id);
+			} else if (model === ModelType.CLIENT) {
+				navigate(path + '/clientes/' + element.id);
 			}
 		}
 	}
 
-	function getLabel(model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType): string {
+	function getLabel(model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType): string {
 		if (model === ModelType.USER && "username" in element) {
 			return String(element.username);
 		} else if (model === ModelType.TAD && "ciudad" in element) {
@@ -73,12 +80,14 @@ export const List = <T extends object>(
 			return String(element.id);
 		} else if (model === ModelType.TEMPLATE && "name" in element) {
 			return String(element.name);
+		} else if (model === ModelType.CLIENT && "noCliente" in element) {
+			return String(element.noCliente);
 		} else {
 			return "name" in element && typeof element.name === "string" ? element.name : "";
 		}
 	}
 
-	function getNextLabel(element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType): string {
+	function getNextLabel(element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType): string {
 		if ("estado" in element) {
 			return element.estado?.name as string;
 		} else if ("lastName" in element) {
@@ -91,6 +100,14 @@ export const List = <T extends object>(
 		return '';
 	}
 
+	const handleItemClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType) => {
+		if (onClick) {
+			onClick(element as T);
+		} else {
+			handleClick(model, element);
+		}
+	}
+
 	return (
 		<>
 			{elements && elements.elements && elements.elements.length > 0 ? (
@@ -98,7 +115,7 @@ export const List = <T extends object>(
 					{elements.elements.map(element => (
 						<li className={'list-row items-center rounded-none hover:bg-black cursor-pointer grid-cols-' + cols + ' flex justify-stretch'}
 							key={"id" in element ? element.id : ''}
-							onClick={() => handleClick(elements.model, element)}>
+							onClick={() => handleItemClick(elements.model, element)}>
 							<div className='inline-flex items-center w-full'>
 								<div className='w-fit'>
 									<FileIcon/>
@@ -122,15 +139,23 @@ export const List = <T extends object>(
 									: ''
 							}
 							{
-								'status' in element
-									?
+								(selected === null) ? (
 									<div className='text-right w-full'>
-										<input type="checkbox"
+										<input id={'id' in element ? element.id : ''}
+											   type="checkbox"
 											   readOnly={true}
 											   checked={"status" in element ? element.status === StatusType.ACTIVE.valueOf() : undefined}
 											   className='checkbox border-white checkbox-md checked:text-[#EC3113]'/>
 									</div>
-									: ''
+								) : (
+									<div className='text-right w-full'>
+										<input type="checkbox"
+											   readOnly={false}
+											   checked={selected.includes("id" in element ? element.id : '')}
+											   onChange={onChange}
+											   className='checkbox border-white checkbox-md checked:text-[#EC3113]'/>
+									</div>
+								)
 							}
 						</li>
 					))}

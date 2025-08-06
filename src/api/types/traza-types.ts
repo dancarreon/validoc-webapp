@@ -4,6 +4,7 @@ import {Tad} from "./tad-types.ts";
 import {Clave} from "./clave-types.ts";
 import {Razon} from "./razon-types.ts";
 import {Product} from "./product-types.ts";
+import {StateType} from "./state-types.ts";
 
 export interface TrazaType {
     id: string;
@@ -52,6 +53,9 @@ export interface TrazaType {
     status?: StatusType;
     createdAt?: Date;
     updatedAt?: Date;
+    ciudad: string;
+    estado: StateType;
+    direccion: string;
 }
 
 export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> {
@@ -106,6 +110,9 @@ export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> 
     marcaUnidad1!: string | null;
     folioCartaPorte!: string | null;
     folioFiscalCartaPorte!: string | null;
+    ciudad!: string;
+    estado!: StateType;
+    direccion!: string;
 }
 
 export type CreateTrazaType = Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'>;

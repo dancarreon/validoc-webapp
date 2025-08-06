@@ -8,4 +8,5 @@ export enum ModelType {
     PRODUCT = 'product',
     TRANSPORTISTA = 'transportista',
     TEMPLATE = 'template',
+    CLIENT = 'client',
 }
