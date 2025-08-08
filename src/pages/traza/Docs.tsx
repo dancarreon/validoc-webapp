@@ -11,7 +11,7 @@ import {getTemplateFile, getTemplates} from "../../api/templates-api.ts";
 import {Spinner} from "../../components/Spinner.tsx";
 import {Button} from "../../components/Button.tsx";
 import {createPdfWithFields} from "../../utils/pdfUtils.ts";
-import {Field} from "../../components/PDFViewer.tsx";
+import {Field} from "../../api/types/field-types";
 import {TrazaType} from "../../api/types/traza-types.ts";
 import {getTraza} from "../../api/trazas-api.ts";
 

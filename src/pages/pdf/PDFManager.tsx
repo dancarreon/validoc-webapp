@@ -1,11 +1,11 @@
 import {useEffect, useState} from 'react'
 import {PdfSelector} from "../../components/PDFSelector.tsx";
-import {PDFViewer} from "../../components/PDFViewer.tsx";
 import {pdfjs} from "react-pdf"
 import {useParams} from "react-router";
 import {getTemplateById, getTemplateFile} from "../../api/templates-api.ts";
 import {TemplateType} from "../../api/types/template-type.ts";
-import { PDFDocument } from 'pdf-lib';
+import {PDFDocument} from 'pdf-lib';
+import {PDFViewer} from "../../components/PDFViewer.tsx";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -49,17 +49,20 @@ export const PdfManager = () => {
 		const [firstPage] = await newPdf.copyPages(originalPdf, [0]);
 		newPdf.addPage(firstPage);
 		const pdfBytes = await newPdf.save();
-		const singlePageFile = new File([pdfBytes], file.name, { type: 'application/pdf' });
+		const singlePageFile = new File([pdfBytes], file.name, {type: 'application/pdf'});
 		setPdfFile(singlePageFile);
 	}
 
 	return (
-		<div className='w-[50%] m-auto border-2 mt-4 rounded-lg border-gray-300 bg-gray-200 shadow-lg'>
+		<div className='w-[100%] m-auto border-2 mt-4 rounded-lg border-gray-300 bg-gray-200 shadow-lg'>
 			<div className="p-4 space-y-4">
 				{!pdfFile ? (
 					<PdfSelector onFileSelect={handleFileSelect}/>
 				) : (
 					<PDFViewer file={pdfFile} template={template || undefined}/>
+					/*
+					<PDFLoader file={pdfFile}/>
+					*/
 				)}
 			</div>
 		</div>

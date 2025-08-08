@@ -1,36 +1,24 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import {ContextMenu} from './ContextMenu.tsx';
-import {Traza, TrazaType} from '../api/types/traza-types.ts';
-import {FieldOverlay} from './FieldOverlay.tsx';
-import {SubmitHandler, useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {CreateTemplateSchema, Template, TemplateType} from "../api/types/template-type.ts";
-import {createTemplate, updateTemplate, uploadPdfFile} from "../api/templates-api.ts";
-import {Toast} from "./Toast.tsx";
-import {Alert} from "./Alert.tsx";
-import {Spinner} from "./Spinner.tsx";
-import {useNavigate} from "react-router";
-import {pdfjs} from "react-pdf"
+import { ContextMenu } from './ContextMenu.tsx';
+import { Traza, TrazaType } from '../api/types/traza-types.ts';
+import { Client, ClientType } from '../api/types/client-types.ts';
+import { FieldOverlay } from './FieldOverlay.tsx';
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateTemplateSchema, Template, TemplateType } from "../api/types/template-type.ts";
+import { createTemplate, updateTemplate, uploadPdfFile } from "../api/templates-api.ts";
+import { Toast } from "./Toast.tsx";
+import { Alert } from "./Alert.tsx";
+import { Spinner } from "./Spinner.tsx";
+import { useNavigate } from "react-router";
+import { Document, Page, pdfjs } from "react-pdf"
 import 'pdfjs-dist/web/pdf_viewer.css';
-import {createPdfWithFields} from '../utils/pdfUtils';
+import { createPdfWithFields } from '../utils/pdfUtils';
+import { Field } from '../api/types/field-types';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-export type Field = {
-	id: string;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	name: keyof TrazaType;
-	fontFamily?: string; //'Helvetica' | 'Courier' | undefined;
-	fontSize?: number;
-	align?: string; //'left' | 'center' | 'right';
-	saved?: boolean;
-	backgroundColor?: string;
-};
 
 type PDFViewerProps = {
 	file: File | string | null;
@@ -38,7 +26,7 @@ type PDFViewerProps = {
 	template?: TemplateType | null,
 };
 
-export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, template = null}) => {
+export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, template = null }) => {
 
 	const [fields, setFields] = useState<Field[]>([]);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -46,18 +34,20 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 	const [drawing, setDrawing] = useState<{ x: number; y: number } | null>(null);
 	const [rect, setRect] = useState<Partial<Field> | null>(null);
 	const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
-	const dragOffset = useRef<{ x: number; y: number }>({x: 0, y: 0});
+	const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 	const [resizingFieldId, setResizingFieldId] = useState<string | null>(null);
+	const [resizeMode, setResizeMode] = useState<'horizontal' | 'vertical' | 'both' | null>(null);
 	const [scale, setScale] = useState<number>(1);
 	const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fieldId: string } | null>(null);
 	const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
 	const [pendingField, setPendingField] = useState<Partial<Field> | null>(null);
 	const [pendingFieldRect, setPendingFieldRect] = useState<Partial<Field> | null>(null);
-	const [pendingFieldName, setPendingFieldName] = useState<keyof TrazaType | ''>('');
-	const [isSelecting, setIsSelecting] = useState(true);
-	const [, setColor] = useState<string | null>(null);
+	const [pendingFieldName, setPendingFieldName] = useState<keyof TrazaType | keyof ClientType | ''>('');
+	const [isSelecting, setIsSelecting] = useState(false); // Changed to false to disable manual drawing by default
 	const [pickingColorForField, setPickingColorForField] = useState<string | null>(null);
+	const [isPickingColor, setIsPickingColor] = useState(false);
 
+	// Canvas ref for color picking
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [, setPdfPage] = useState<unknown>(null);
 
@@ -65,6 +55,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 	const [show, setShow] = useState(false)
 	const [showErrors, setShowErrors] = useState(false)
 	const [message, setMessage] = useState('')
+	const loadedTemplatesRef = useRef<Set<string>>(new Set());
 
 	const navigate = useNavigate();
 
@@ -77,6 +68,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		.sort((a, b) => a.localeCompare(b)), []
 	);
 
+	const clientKeys = useMemo(() => (
+		Object.keys(new Client({})) as (keyof ClientType)[]
+	).sort((a, b) => a.localeCompare(b)), []);
+
 	let isAdmin = false;
 
 	if (window.location.pathname.includes("admin")) {
@@ -88,7 +83,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 	const {
 		register,
 		handleSubmit,
-		formState: {errors},
+		formState: { errors },
 		watch,
 		setValue,
 	} = useForm<TemplateType>({
@@ -123,7 +118,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			setIsLoading(true);
 
 			if (file) {
-				const uploadFileName = await uploadPdfFile(file instanceof File ? file : new File([file], templateData.name, {type: 'application/pdf'}))
+				const uploadFileName = await uploadPdfFile(file instanceof File ? file : new File([file], templateData.name, { type: 'application/pdf' }))
 
 				if (uploadFileName) {
 
@@ -149,25 +144,46 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			// Update existing template
 			setIsLoading(true);
 
+			console.log('Saving template with fields:', templateData.fields);
 			const savedTemplate = await updateTemplate(template.id, templateData);
 
 			if (savedTemplate) {
+				console.log('Template saved successfully:', savedTemplate);
 				setShow(true);
 				setMessage('Plantilla actualizada exitosamente')
 				setTimeout(function () {
 					setShow(false);
 				}, 5000);
+
+				// Clear the loaded templates ref to prevent re-loading after save
+				loadedTemplatesRef.current.clear();
 			}
 
 			setIsLoading(false);
 		}
 	};
 
-	// Set container width on mount
+	// Set container width on mount and handle resize
 	useEffect(() => {
-		if (containerRef.current) {
-			setContainerWidth(containerRef.current.offsetWidth);
-		}
+		const updateContainerWidth = () => {
+			if (containerRef.current) {
+				setContainerWidth(containerRef.current.offsetWidth);
+			}
+		};
+
+		// Initial width
+		updateContainerWidth();
+
+		// Handle window resize (including developer tools opening/closing)
+		window.addEventListener('resize', updateContainerWidth);
+
+		// Handle orientation change
+		window.addEventListener('orientationchange', updateContainerWidth);
+
+		return () => {
+			window.removeEventListener('resize', updateContainerWidth);
+			window.removeEventListener('orientationchange', updateContainerWidth);
+		};
 	}, []);
 
 	// Keyboard arrow move
@@ -183,7 +199,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				setFields(fields =>
 					fields.map(f =>
 						f.id === activeFieldId
-							? {...f, x: f.x + dx, y: f.y + dy}
+							? { ...f, x: f.x + dx, y: f.y + dy }
 							: f
 					)
 				);
@@ -201,80 +217,102 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 		function handleClickOutside(e: MouseEvent) {
 			const menu = document.getElementById('pdf-context-menu');
-			if (menu && !menu.contains(e.target as Node)) {
-				setContextMenu(null);
+			const fieldCreationDialog = document.querySelector('[style*="zIndex: 1001"]'); // Field creation dialog
+
+			// Don't close if clicking inside the context menu or field creation dialog
+			if (menu && !menu.contains(e.target as Node) &&
+				(!fieldCreationDialog || !fieldCreationDialog.contains(e.target as Node))) {
+				// Add a small delay to allow select dropdowns to open
+				setTimeout(() => {
+					setContextMenu(null);
+				}, 50);
 			}
 		}
 
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => document.removeEventListener('mousedown', handleClickOutside);
+		// Use click instead of mousedown to allow input interactions
+		document.addEventListener('click', handleClickOutside);
+		return () => document.removeEventListener('click', handleClickOutside);
 	}, [contextMenu]);
 
-	// Load template fields if provided
+	// Load template fields if provided (only if we haven't loaded this template yet)
 	useEffect(() => {
 		if (template && Array.isArray(template.fields)) {
-			setFields(template.fields.map(f => ({
-				id: f.id || crypto.randomUUID(),
-				name: f.name || '',
-				x: f.x || 0,
-				y: f.y || 0,
-				width: f.width || 50,
-				height: f.height || 20,
-				fontFamily: f.fontFamily || 'Helvetica',
-				fontSize: f.fontSize || 6,
-				align: f.align || 'left',
-				backgroundColor: f.color || '#ffffff',
-			}) as Field));
-			setValue('name', template.name || '');
-		}
-	}, [setValue, template]);
+			const templateId = template.id;
 
-	// Load and render PDF to canvas
-	useEffect(() => {
+			console.log('Template loading effect triggered:', {
+				templateId,
+				hasLoaded: loadedTemplatesRef.current.has(templateId),
+				fieldsCount: template.fields.length,
+				currentFieldsCount: fields.length
+			});
 
-		async function renderPdf() {
-			if (!file || !canvasRef.current || !containerWidth) return;
-			let data: ArrayBuffer;
-			if (typeof file === 'string') {
-				const res = await fetch(file);
-				data = await res.arrayBuffer();
+			// Only load template fields if we haven't loaded this specific template yet
+			if (!loadedTemplatesRef.current.has(templateId)) {
+				console.log('Loading template fields for template:', templateId);
+				const templateFields = template.fields.map(f => ({
+					id: f.id || crypto.randomUUID(),
+					name: f.name || '',
+					x: f.x || 0,
+					y: f.y || 0,
+					width: f.width || 50,
+					height: f.height || 20,
+					fontFamily: f.fontFamily || 'Helvetica',
+					fontSize: f.fontSize || 6,
+					align: f.align || 'left',
+					backgroundColor: f.color || '#ffffff',
+				}) as Field);
+
+				setFields(templateFields);
+				setValue('name', template.name || '');
+				loadedTemplatesRef.current.add(templateId);
+				console.log('Template fields loaded:', templateFields.length, 'fields');
 			} else {
-				data = await file.arrayBuffer();
+				console.log('Template already loaded, skipping:', templateId);
 			}
-			const pdfDoc = await pdfjs.getDocument({data}).promise;
-			const page = await pdfDoc.getPage(1);
-			setPdfPage(page);
-
-			const viewport = page.getViewport({scale: 1});
-			const devicePixelRatio = window.devicePixelRatio || 1;
-			const displayWidth = containerWidth * scale;
-			const displayHeight = displayWidth * (viewport.height / viewport.width);
-
-			const canvas = canvasRef.current;
-			const context = canvas.getContext('2d');
-			if (!context) return;
-			canvas.width = displayWidth * devicePixelRatio;
-			canvas.height = displayHeight * devicePixelRatio;
-			canvas.style.width = `${displayWidth}px`;
-			canvas.style.height = `${displayHeight}px`;
-
-			// Only scale for high-DPI, do NOT flip
-			context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-
-			// Render PDF (no context.save/translate/scale)
-			const renderViewport = page.getViewport({scale: displayWidth / viewport.width});
-			const renderTask = page.render({canvasContext: context, viewport: renderViewport});
-
-			await renderTask?.promise;
-
-			// Wait 300ms after rendering is complete
-			setTimeout(() => {
-				// waiting for the PDF to render completely
-			}, 500);
 		}
+	}, [setValue, template?.id]); // Only depend on template ID, not the entire template object
 
-		renderPdf();
-	}, [file, scale, containerWidth]);
+	// PDF rendering is now handled by react-pdf Document component
+	// But we still need canvas for color picking
+	useEffect(() => {
+		if (!file || !canvasRef.current) return;
+
+		const canvas = canvasRef.current;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		// Load PDF to canvas for color picking
+		const loadPdfToCanvas = async () => {
+			try {
+				// Convert File to ArrayBuffer for pdfjs
+				let pdfData: string | ArrayBuffer;
+				if (file instanceof File) {
+					pdfData = await file.arrayBuffer();
+				} else {
+					pdfData = file;
+				}
+
+				const pdf = await pdfjs.getDocument(pdfData).promise;
+				const page = await pdf.getPage(1);
+				const viewport = page.getViewport({ scale: 1 });
+
+				canvas.width = viewport.width;
+				canvas.height = viewport.height;
+
+				const renderContext = {
+					canvasContext: ctx,
+					viewport: viewport
+				};
+
+				await page.render(renderContext).promise;
+				setPdfPage(page);
+			} catch (error) {
+				console.error('Error loading PDF to canvas:', error);
+			}
+		};
+
+		loadPdfToCanvas();
+	}, [file]);
 
 	// Reset picking color after 3 seconds
 	useEffect(() => {
@@ -287,6 +325,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 	// text selection to field
 	useEffect(() => {
 		function handleTextSelection() {
+			// Only process text selection when not in manual drawing mode
+			if (isSelecting) return;
+
 			const selection = window.getSelection();
 			if (!selection || selection.isCollapsed) return;
 
@@ -302,91 +343,222 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				rect.top >= containerRect.top &&
 				rect.bottom <= containerRect.bottom
 			) {
-				// Convert to PDF coordinates
-				const x = (rect.left - containerRect.left + containerRef.current.scrollLeft) / scale;
-				const y = (rect.top - containerRect.top + containerRef.current.scrollTop) / scale;
+				// Get the PDF element to calculate relative coordinates
+				const pdfElement = containerRef.current.querySelector('.react-pdf__Page');
+				if (!pdfElement) return;
+
+				const pdfRect = pdfElement.getBoundingClientRect();
+
+				// Calculate coordinates relative to the PDF element (not the container)
+				const x = (rect.left - pdfRect.left) / scale;
+				const y = (rect.top - pdfRect.top) / scale;
 				const width = rect.width / scale;
 				const height = rect.height / scale;
 
-				setPendingFieldRect({x, y, width, height});
-				setPendingField({x, y, width, height});
-				// Optionally, clear the selection
-				selection.removeAllRanges();
+				// Only create field if we have a valid selection with minimum size
+				if (width > 5 && height > 5) {
+					setPendingFieldRect({ x, y, width, height });
+					setPendingField({ x, y, width, height });
+					// Clear the selection after creating the field
+					selection.removeAllRanges();
+				}
+			}
+		}
+
+		// Prevent text selection in manual mode
+		function preventTextSelection(e: Event) {
+			if (isSelecting) {
+				e.preventDefault();
+				// Clear any existing selection
+				const selection = window.getSelection();
+				if (selection) {
+					selection.removeAllRanges();
+				}
 			}
 		}
 
 		document.addEventListener('mouseup', handleTextSelection);
-		return () => document.removeEventListener('mouseup', handleTextSelection);
-	}, [scale]);
+		document.addEventListener('mousedown', preventTextSelection);
+		document.addEventListener('selectstart', preventTextSelection);
 
-	const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-		const canvas = canvasRef.current;
-		if (!canvas) return;
-		const rect = canvas.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const y = e.clientY - rect.top;
-		const ctx = canvas.getContext('2d');
-		const pixel = ctx?.getImageData(x, y, 1, 1).data;
-		if (pixel) {
-			const hex = `#${[pixel[0], pixel[1], pixel[2]]
-				.map((c) => c.toString(16).padStart(2, '0'))
-				.join('')}`;
-			if (pickingColorForField) {
-				// Set the color for the field and exit color picking mode
-				updateFieldProperty(pickingColorForField, 'backgroundColor', hex);
-				setPickingColorForField(null);
-			} else {
-				setColor(hex); // If you want to keep the generic color picker
+		return () => {
+			document.removeEventListener('mouseup', handleTextSelection);
+			document.removeEventListener('mousedown', preventTextSelection);
+			document.removeEventListener('selectstart', preventTextSelection);
+		};
+	}, [scale, isSelecting]);
+
+	const handleClick = async (e: React.MouseEvent) => {
+		// Only handle color picking when in color picking mode
+		if (!pickingColorForField) return;
+
+		e.preventDefault();
+		e.stopPropagation();
+
+		// Prevent multiple simultaneous color picking operations
+		if (isPickingColor) return;
+
+		setIsPickingColor(true);
+
+		try {
+			// Use hidden canvas for color picking (most accurate)
+			const canvas = canvasRef.current;
+			if (canvas) {
+				const ctx = canvas.getContext('2d');
+				if (ctx) {
+					// Get click coordinates relative to the container
+					const container = containerRef.current;
+					if (!container) return;
+
+					const rect = container.getBoundingClientRect();
+					const x = e.clientX - rect.left;
+					const y = e.clientY - rect.top;
+
+					// Find the actual PDF element to get its real dimensions
+					const pdfElement = container.querySelector('.react-pdf__Page');
+					if (!pdfElement) return;
+
+					const pdfRect = pdfElement.getBoundingClientRect();
+					const containerRect = container.getBoundingClientRect();
+
+					// Calculate PDF coordinates relative to the container
+					const pdfX = x - (pdfRect.left - containerRect.left);
+					const pdfY = y - (pdfRect.top - containerRect.top);
+
+					// Ensure coordinates are within PDF bounds
+					if (pdfX >= 0 && pdfX <= pdfRect.width && pdfY >= 0 && pdfY <= pdfRect.height) {
+						// Convert PDF coordinates to canvas coordinates
+						const canvasX = (pdfX / pdfRect.width) * canvas.width;
+						const canvasY = (pdfY / pdfRect.height) * canvas.height;
+
+						console.log('Coordinate conversion:', {
+							clickX: x,
+							clickY: y,
+							pdfX,
+							pdfY,
+							pdfRect: { width: pdfRect.width, height: pdfRect.height },
+							canvasX,
+							canvasY,
+							canvasSize: { width: canvas.width, height: canvas.height }
+						});
+
+						// Ensure coordinates are within canvas bounds
+						if (canvasX >= 0 && canvasX < canvas.width && canvasY >= 0 && canvasY < canvas.height) {
+							const pixel = ctx.getImageData(canvasX, canvasY, 1, 1).data;
+							if (pixel && pixel.length >= 3) {
+								const hex = `#${[pixel[0], pixel[1], pixel[2]]
+									.map((c) => c.toString(16).padStart(2, '0'))
+									.join('')}`;
+
+								console.log('Color picked:', hex, 'RGB:', [pixel[0], pixel[1], pixel[2]]);
+
+								updateFieldProperty(pickingColorForField, 'backgroundColor', hex);
+								setPickingColorForField(null);
+
+								setShow(true);
+								setMessage(`Color seleccionado: ${hex}`);
+								setTimeout(() => setShow(false), 2000);
+								return;
+							}
+						}
+					}
+				}
 			}
+
+			// Fallback to native color picker if canvas fails
+			const colorInput = document.createElement('input');
+			colorInput.type = 'color';
+			colorInput.value = '#ffffff';
+			colorInput.style.position = 'absolute';
+			colorInput.style.left = '-9999px';
+			document.body.appendChild(colorInput);
+
+			colorInput.addEventListener('change', (e) => {
+				const selectedColor = (e.target as HTMLInputElement).value;
+				updateFieldProperty(pickingColorForField, 'backgroundColor', selectedColor);
+				setPickingColorForField(null);
+
+				setShow(true);
+				setMessage(`Color seleccionado: ${selectedColor}`);
+				setTimeout(() => setShow(false), 2000);
+
+				document.body.removeChild(colorInput);
+			});
+
+			colorInput.click();
+		} catch (error) {
+			console.error('Error picking color:', error);
+
+			// Final fallback to default color
+			updateFieldProperty(pickingColorForField, 'backgroundColor', '#ffffff');
+			setPickingColorForField(null);
+
+			setShow(true);
+			setMessage('Error al seleccionar color. Usando color por defecto.');
+			setTimeout(() => setShow(false), 3000);
+		} finally {
+			setIsPickingColor(false);
 		}
 	};
 
 
 	function handleMouseDown(e: React.MouseEvent) {
-		if (!containerRef.current) return;
-		const rect = containerRef.current.getBoundingClientRect();
-		const scrollLeft = containerRef.current.scrollLeft;
-		const scrollTop = containerRef.current.scrollTop;
+		// Only allow drawing if isSelecting is true (manual mode)
+		if (!isSelecting || !containerRef.current) return;
+
+		// Get the PDF element for accurate coordinate calculation
+		const pdfElement = containerRef.current.querySelector('.react-pdf__Page');
+		if (!pdfElement) return;
+
+		const pdfRect = pdfElement.getBoundingClientRect();
 		setDrawing({
-			x: (e.clientX - rect.left + scrollLeft) / scale,
-			y: (e.clientY - rect.top + scrollTop) / scale
+			x: (e.clientX - pdfRect.left) / scale,
+			y: (e.clientY - pdfRect.top) / scale
 		});
 	}
 
 	function handleMouseMove(e: React.MouseEvent) {
 		if (!containerRef.current) return;
-		const rect = containerRef.current.getBoundingClientRect();
-		const scrollLeft = containerRef.current.scrollLeft;
-		const scrollTop = containerRef.current.scrollTop;
+
+		// Get the PDF element for accurate coordinate calculation
+		const pdfElement = containerRef.current.querySelector('.react-pdf__Page');
+		if (!pdfElement) return;
+
+		const pdfRect = pdfElement.getBoundingClientRect();
 
 		if (drawing) {
-			const x2 = (e.clientX - rect.left + scrollLeft) / scale;
-			const y2 = (e.clientY - rect.top + scrollTop) / scale;
+			const x2 = (e.clientX - pdfRect.left) / scale;
+			const y2 = (e.clientY - pdfRect.top) / scale;
 			const x = Math.min(drawing.x, x2);
 			const y = Math.min(drawing.y, y2);
 			const width = Math.abs(x2 - drawing.x);
 			const height = Math.abs(y2 - drawing.y);
-			setRect({x, y, width, height});
+			setRect({ x, y, width, height });
 		} else if (draggingFieldId) {
 			const field = fields.find(f => f.id === draggingFieldId);
 			if (!field) return;
-			const x = (e.clientX - rect.left + scrollLeft - dragOffset.current.x) / scale;
-			const y = (e.clientY - rect.top + scrollTop - dragOffset.current.y) / scale;
+			const x = (e.clientX - pdfRect.left - dragOffset.current.x) / scale;
+			const y = (e.clientY - pdfRect.top - dragOffset.current.y) / scale;
 			setFields((prev) =>
-				prev.map((f) => (f.id === draggingFieldId ? {...f, x, y} : f))
+				prev.map((f) => (f.id === draggingFieldId ? { ...f, x, y } : f))
 			);
-		} else if (resizingFieldId) {
+		} else if (resizingFieldId && resizeMode) {
 			const field = fields.find(f => f.id === resizingFieldId);
 			if (!field) return;
-			const x = (e.clientX - rect.left + scrollLeft) / scale;
-			const y = (e.clientY - rect.top + scrollTop) / scale;
+			const x = (e.clientX - pdfRect.left) / scale;
+			const y = (e.clientY - pdfRect.top) / scale;
+
 			setFields((prev) =>
 				prev.map((f) =>
 					f.id === resizingFieldId
 						? {
 							...f,
-							width: Math.max(7.5, x - field.x),
-							height: Math.max(7.5, y - field.y),
+							width: resizeMode === 'horizontal' || resizeMode === 'both'
+								? Math.max(7.5, x - field.x)
+								: field.width,
+							height: resizeMode === 'vertical' || resizeMode === 'both'
+								? Math.max(7.5, y - field.y)
+								: field.height,
 						}
 						: f
 				)
@@ -403,26 +575,21 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		setRect(null);
 		setDraggingFieldId(null);
 		setResizingFieldId(null);
+		setResizeMode(null);
 	}
 
 	function handleAddField() {
 		if (!pendingFieldRect || !pendingFieldName) return;
-		let backgroundColor = '#ffffff';
-		if (canvasRef.current) {
-			const ctx = canvasRef.current.getContext('2d');
-			if (ctx) {
-				// Sample at the bottom-left of the field
-				const leftX = Math.round((pendingFieldRect.x ?? 0) * scale);
-				const bottomY = Math.round(((pendingFieldRect.y ?? 0) + (pendingFieldRect.height ?? 0)) * scale);
-				const bottomLeftPixel = ctx.getImageData(leftX, bottomY, 1, 1).data;
-				backgroundColor = `#${[bottomLeftPixel[0], bottomLeftPixel[1], bottomLeftPixel[2]].map(c => c.toString(16).padStart(2, '0')).join('')}`;
-			}
-		}
+		const backgroundColor = '#ffffff';
+
+		// Since we're using Document component instead of canvas, use a default background color
+		// or implement a more sophisticated color sampling method if needed
+
 		if (pendingField && 'id' in pendingField) {
 			setFields(fields =>
 				fields.map(f =>
 					f.id === pendingField.id
-						? {...f, name: pendingFieldName, backgroundColor}
+						? { ...f, name: pendingFieldName, backgroundColor }
 						: f
 				)
 			);
@@ -445,9 +612,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		setPendingFieldName('');
 	}
 
-	const startResizingField = useCallback((e: React.MouseEvent, id: string) => {
+	const startResizingField = useCallback((e: React.MouseEvent, id: string, mode: 'horizontal' | 'vertical' | 'both') => {
 		e.stopPropagation();
 		setResizingFieldId(id);
+		setResizeMode(mode);
 	}, []);
 
 	function handleSaveAll() {
@@ -470,27 +638,32 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 	const handleFieldContextMenu = useCallback((e: React.MouseEvent, fieldId: string) => {
 		e.preventDefault();
-		setContextMenu({x: e.clientX, y: e.clientY, fieldId});
+		setContextMenu({ x: e.clientX, y: e.clientY, fieldId });
 	}, []);
 
 	function updateFieldProperty(fieldId: string, prop: keyof Field, value: unknown) {
-		setFields(fields => fields.map(f => f.id === fieldId ? {...f, [prop]: value} : f));
+		setFields(fields => fields.map(f => f.id === fieldId ? { ...f, [prop]: value } : f));
 	}
 
 	const startDraggingField = useCallback((e: React.MouseEvent, id: string, field: Field) => {
 		if (contextMenu) return;
 		e.stopPropagation();
 		if (!containerRef.current) return;
-		const rect = containerRef.current.getBoundingClientRect();
-		const scrollLeft = containerRef.current.scrollLeft;
-		const scrollTop = containerRef.current.scrollTop;
+
+		// Get the PDF element for accurate coordinate calculation
+		const pdfElement = containerRef.current.querySelector('.react-pdf__Page');
+		if (!pdfElement) return;
+
+		const pdfRect = pdfElement.getBoundingClientRect();
 		dragOffset.current = {
-			x: (e.clientX - rect.left + scrollLeft) / scale - field.x,
-			y: (e.clientY - rect.top + scrollTop) / scale - field.y,
+			x: (e.clientX - pdfRect.left) / scale - field.x,
+			y: (e.clientY - pdfRect.top) / scale - field.y,
 		};
 		setActiveFieldId(id);
 		setDraggingFieldId(id);
 	}, [contextMenu, scale]);
+
+
 
 	const handleEditField = useCallback((field: Field) => {
 		setPendingField(field);
@@ -529,29 +702,42 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				</div>
 				<div className="mb-2 flex gap-2">
 					<button type='button'
-							className="px-2 py-1 bg-gray-500 rounded text-white"
-							onClick={() => setScale(s => Math.max(0.5, s - 0.1))}>
+						className="px-2 py-1 bg-gray-500 rounded text-white"
+						onClick={() => setScale(s => Math.max(0.5, s - 0.1))}>
 						Zoom Out
 					</button>
 					<button type='button'
-							className="px-2 py-1 bg-gray-500 rounded text-white"
-							onClick={() => setScale(s => Math.min(3, s + 0.1))}>
+						className="px-2 py-1 bg-gray-500 rounded text-white"
+						onClick={() => setScale(s => Math.min(3, s + 0.1))}>
 						Zoom In
 					</button>
 					<span className="ml-2 text-black">Zoom: {(scale * 100).toFixed(0)}%</span>
+
+					{/* Mode toggle button */}
+					<button type='button'
+						className={`px-3 py-1 rounded text-white ${isSelecting ? 'bg-blue-600' : 'bg-green-600'}`}
+						onClick={() => setIsSelecting(!isSelecting)}>
+						{isSelecting ? 'Modo Manual' : 'Modo Selección de Texto'}
+					</button>
+
+					{/* Mode indicator */}
+					<span className="ml-2 text-black">
+						{isSelecting ? '💡 Dibuja rectángulos para crear campos' : '📝 Selecciona texto para crear campos'}
+					</span>
+
 					<div className='float-right ml-auto'>
 						{
 							isLoading
-								? (<Spinner styles='m-auto pb-10.5 grid'/>)
+								? (<Spinner styles='m-auto pb-10.5 grid' />)
 								: <>
 									<button type='submit'
-											className="ml-4 px-2 py-1 bg-blue-500 text-white rounded"
-											onClick={handleSaveAll}>
+										className="ml-4 px-2 py-1 bg-blue-500 text-white rounded"
+										onClick={handleSaveAll}>
 										Guardar Plantilla
 									</button>
 									<button type='button'
-											className="ml-2 px-2 py-1 bg-green-600 text-white rounded"
-											onClick={() => createPdfWithFields(file!, fields, containerWidth)}>
+										className="ml-2 px-2 py-1 bg-green-600 text-white rounded"
+										onClick={() => createPdfWithFields(file!, fields, containerWidth)}>
 										Generar PDF con Etiquetas
 									</button>
 								</>
@@ -559,17 +745,53 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					</div>
 				</div>
 				<div ref={containerRef}
-					 className={`relative border rounded shadow overflow-auto w-full h-[100%] bg-[#f8f8f8]${!isSelecting ? ' noselect' : ''}`}
-					 onClick={handleContainerClick}
-					 onMouseDown={handleMouseDown}
-					 onMouseMove={handleMouseMove}
-					 onMouseUp={handleMouseUp}>
-					{containerWidth && (
-						<canvas className='w-full' ref={canvasRef} onClick={handleClick}/>
+					className={`relative border rounded shadow overflow-auto w-full min-h-[600px] bg-[#f8f8f8]${!isSelecting ? ' noselect' : ''} ${!isSelecting ? 'cursor-text' : 'cursor-crosshair'}`}
+					style={{
+						userSelect: isSelecting ? 'none' : 'text',
+						cursor: pickingColorForField ? 'crosshair' : (!isSelecting ? 'text' : 'crosshair')
+					}}
+					onClick={(e) => {
+						handleContainerClick();
+						handleClick(e);
+					}}
+					onMouseDown={handleMouseDown}
+					onMouseMove={handleMouseMove}
+					onMouseUp={handleMouseUp}>
+
+					{/* Text selection mode indicator */}
+					{!isSelecting && (
+						<div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1 rounded shadow-lg z-10">
+							📝 Modo Selección de Texto: Selecciona texto en el PDF para crear campos
+						</div>
 					)}
-					{/*<Document file={file}>
-						<Page pageNumber={1} width={containerWidth * scale}/>
-					</Document>*/}
+
+					{/* Help tooltip for text selection */}
+					{!isSelecting && (
+						<div className="absolute bottom-2 right-2 bg-gray-800 text-white px-3 py-2 rounded shadow-lg z-10 text-sm">
+							💡 <strong>Consejo:</strong> Haz clic y arrastra sobre el texto que quieres convertir en campo
+						</div>
+					)}
+
+					{containerWidth && (
+						<Document file={file}>
+							<Page
+								pageNumber={1}
+								width={containerWidth * scale}
+
+							/>
+						</Document>
+					)}
+
+					{/* Hidden canvas for color picking */}
+					<canvas
+						ref={canvasRef}
+						style={{
+							position: 'absolute',
+							left: '-9999px',
+							top: '-9999px',
+							visibility: 'hidden'
+						}}
+					/>
 					{fields.map((f) => (
 						<FieldOverlay
 							key={f.id}
@@ -586,41 +808,79 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					))}
 					{rect && !pendingField && (
 						<div className="absolute border-2 border-red-500"
-							 style={{
-								 left: rect.x! * scale,
-								 top: rect.y! * scale,
-								 width: rect.width! * scale,
-								 height: rect.height! * scale
-							 }}/>
+							style={{
+								left: rect.x! * scale,
+								top: rect.y! * scale,
+								width: rect.width! * scale,
+								height: rect.height! * scale
+							}} />
+					)}
+
+					{/* Highlight selected text area */}
+					{pendingField && pendingFieldRect && !isSelecting && (
+						<div className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-20"
+							style={{
+								left: (pendingFieldRect.x ?? 0) * scale,
+								top: (pendingFieldRect.y ?? 0) * scale,
+								width: (pendingFieldRect.width ?? 0) * scale,
+								height: (pendingFieldRect.height ?? 0) * scale
+							}} />
 					)}
 					{/* Field creation select */}
 					{pendingField && pendingFieldRect && (
 						<div className="absolute bg-black border rounded-md shadow p-2"
-							 style={{
-								 left: (pendingFieldRect.x ?? 0) * scale,
-								 top: ((pendingFieldRect.y ?? 0) * scale) - 40,
-								 zIndex: 1001,
-							 }}>
-							<label className="block text-xs mb-1">Seleccione la propiedad de la Traza a mostrar:</label>
+							style={{
+								left: (pendingFieldRect.x ?? 0) * scale,
+								top: ((pendingFieldRect.y ?? 0) * scale) - 40,
+								zIndex: 1001,
+							}}
+							onClick={(e) => e.stopPropagation()}
+							onMouseDown={(e) => e.stopPropagation()}>
+							<label className="block text-xs mb-1 text-white">
+								{!isSelecting ? '📝 Texto seleccionado - ' : ''}Seleccione la propiedad a mostrar:
+							</label>
 							<select value={pendingFieldName}
-									onChange={e => setPendingFieldName(e.target.value as keyof TrazaType)}
-									className="border rounded px-1 py-0.5 bg-black">
-								<option value=''>-- Seleccionar --</option>
-								{trazaKeys.map(key => (
-									<option key={key} value={key}>{key}</option>
-								))}
+								onChange={e => setPendingFieldName(e.target.value as keyof TrazaType | keyof ClientType)}
+								onClick={(e) => e.stopPropagation()}
+								onMouseDown={(e) => e.stopPropagation()}
+								className="border rounded px-2 py-1 bg-white text-black border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[200px]">
+								<option value=''>-- Seleccione una propiedad --</option>
+
+								{/* Traza Properties */}
+								<optgroup label="📊 Propiedades de Traza">
+									{trazaKeys.map(key => (
+										<option key={`traza-${key}`} value={key}>
+											📊 {key}
+										</option>
+									))}
+								</optgroup>
+
+								{/* Client Properties */}
+								<optgroup label="👤 Propiedades de Cliente">
+									{clientKeys.map(key => (
+										<option key={`client-${key}`} value={key}>
+											👤 {key}
+										</option>
+									))}
+								</optgroup>
 							</select>
-							<button className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
-									disabled={!pendingFieldName}
-									onClick={handleAddField}>
-								+
+							<button type="button"
+								className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+								disabled={!pendingFieldName}
+								onClick={(e) => {
+									e.stopPropagation();
+									handleAddField();
+								}}>
+								{pendingField && 'id' in pendingField ? 'Editar' : 'Crear Campo'}
 							</button>
-							<button className="ml-2 px-2 py-1 bg-gray-400 text-white rounded"
-									onClick={() => {
-										setPendingField(null);
-										setPendingFieldRect(null);
-										setPendingFieldName('');
-									}}>
+							<button type="button"
+								className="ml-2 px-2 py-1 bg-gray-400 text-white rounded"
+								onClick={(e) => {
+									e.stopPropagation();
+									setPendingField(null);
+									setPendingFieldRect(null);
+									setPendingFieldName('');
+								}}>
 								Cancelar
 							</button>
 						</div>
@@ -631,25 +891,47 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 						contextMenu={contextMenu}
 						field={contextMenuField}
 						updateFieldProperty={updateFieldProperty}
+						onDelete={handleRemoveField}
 						onPickColor={() => setPickingColorForField(contextMenuField.id)}
 					/>
 				)}
 			</div>
 			<Toast>
-				{show && <Alert message={message}/>}
+				{show && <Alert message={message} />}
 			</Toast>
 			{showErrors && (
 				<Toast>
 					{errorMap.length > 0 && errorMap.map((error, index) => (
-						<Alert message={error!} key={index}/>
+						<Alert message={error!} key={index} />
 					))}
 				</Toast>
 			)}
 			{pickingColorForField && (
 				<div
 					className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-[2000] pointer-events-none">
-					<div className="bg-black text-white px-4 py-2 rounded shadow-lg pointer-events-auto">
-						Haz click en algún punto del PDF para seleccionar un color para el fondo del campo.
+					<div className="bg-black text-white px-6 py-4 rounded shadow-lg pointer-events-auto text-center">
+						<div className="mb-2">
+							{isPickingColor ? '⏳' : '🎨'} <strong>Selector de Color</strong>
+						</div>
+						<div className="text-sm mb-3">
+							{isPickingColor
+								? 'Procesando color...'
+								: 'Haz click en cualquier punto del PDF para seleccionar el color de fondo del campo.'
+							}
+						</div>
+						{!isPickingColor && (
+							<div className="text-xs text-gray-300">
+								💡 Consejo: El color se extraerá directamente del PDF usando canvas oculto
+							</div>
+						)}
+						{!isPickingColor && (
+							<button
+								className="mt-3 px-3 py-1 bg-red-600 text-white rounded text-sm"
+								onClick={() => setPickingColorForField(null)}
+							>
+								Cancelar
+							</button>
+						)}
 					</div>
 				</div>
 			)}

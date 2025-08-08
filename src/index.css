@@ -43,16 +43,4 @@
 }
 
 .react-pdf__Page__textContent {
-    pointer-events: none !important;
-}
-
-.pdf-overlay,
-.pdf-overlay * {
-    pointer-events: auto !important;
-}
-
-.noselect {
-    user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
 }

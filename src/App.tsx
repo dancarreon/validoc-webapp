@@ -36,6 +36,8 @@ import {ListPdf} from "./pages/pdf/ListPDF.tsx";
 import {Clientes} from "./pages/admin/clients/Clients.tsx";
 import {ClientInfo} from "./pages/admin/clients/ClientInfo.tsx";
 import {NewClient} from "./pages/admin/clients/NewClient.tsx";
+import {PDFLoader} from "./components/PDFLoader.tsx";
+import {QRCodeDemo} from "./pages/QRCodeDemo.tsx";
 
 const App = () => {
 	return (
@@ -103,10 +105,13 @@ const App = () => {
 					<Route path="nuevo-pdf" element={<PdfManager/>}/>
 					<Route path="pdfs/:id" element={<PdfManager/>}/>
 					<Route path="pdfs" element={<ListPdf/>}/>
+					<Route path="load-pdf" element={<PDFLoader/>}/>
 					{/*Admin Clientes*/}
 					<Route path="clientes" element={<Clientes/>}/>
 					<Route path="clientes/:id" element={<ClientInfo/>}/>
 					<Route path="nuevo-cliente" element={<NewClient/>}/>
+					{/*QR Codes*/}
+					<Route path="qr" element={<QRCodeDemo/>}/>
 				</Route>
 			</Routes>
 		</BrowserRouter>

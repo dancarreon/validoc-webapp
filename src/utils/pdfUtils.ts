@@ -1,6 +1,6 @@
 import {PDFDocument, rgb} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
-import {Field} from '../components/PDFViewer';
+import {Field} from '../api/types/field-types';
 import {TrazaType} from '../api/types/traza-types.ts';
 import {UserType} from '../api/types/user-types.ts';
 import {StateType} from '../api/types/state-types.ts';
@@ -47,24 +47,25 @@ export async function createPdfWithFields(
 
 		let text = String(field.name);
 
-		if (traza && traza[field.name]) {
-			if (isObject(traza[field.name])) {
+		if (traza && field.name in traza && traza[field.name as keyof TrazaType]) {
+			const value = traza[field.name as keyof TrazaType];
+			if (isObject(value)) {
 				/*
-				switch (getCustomType(traza[field.name])) {
+				switch (getCustomType(value)) {
 					case 'TadType': {
-						if (isTadType(traza[field.name])) {
-							if (traza[field.name] !== null && traza[field.name] !== undefined) {
-								const ciudad = traza[field.name];
+						if (isTadType(value)) {
+							if (value !== null && value !== undefined) {
+								const ciudad = value;
 								text = ciudad?.ciudad?.toUpperCase()
 							}
-							//text = `TAD ${traza[field.name].ciudad?.toUpperCase() || ''}, ${traza[field.name].estado?.name?.toUpperCase() || ''}.\n${traza[field.name].direccion?.toUpperCase() || ''}`;
+							//text = `TAD ${value.ciudad?.toUpperCase() || ''}, ${value.estado?.name?.toUpperCase() || ''}.\n${value.direccion?.toUpperCase() || ''}`;
 						}
 						break;
 					}
 				}
 				*/
 			} else {
-				text = String(traza[field.name]);
+				text = String(value);
 			}
 		}
 
