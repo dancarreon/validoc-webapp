@@ -45,6 +45,7 @@ interface AttributeValuePair {
 	value: string;
 	originalAttribute?: string; // Keep track of original Excel attribute for reference
 	isValueModified?: boolean; // Track if the value has been manually modified
+	similarity?: number;
 }
 
 interface SectionData {
