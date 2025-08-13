@@ -38,6 +38,7 @@ import {ClientInfo} from "./pages/admin/clients/ClientInfo.tsx";
 import {NewClient} from "./pages/admin/clients/NewClient.tsx";
 import {PDFLoader} from "./components/PDFLoader.tsx";
 import {QRCodeDemo} from "./pages/QRCodeDemo.tsx";
+import {ExcelPasteDemo} from "./pages/ExcelPasteDemo.tsx";
 
 const App = () => {
 	return (
@@ -112,6 +113,8 @@ const App = () => {
 					<Route path="nuevo-cliente" element={<NewClient/>}/>
 					{/*QR Codes*/}
 					<Route path="qr" element={<QRCodeDemo/>}/>
+					{/*Excel feature*/}
+					<Route path="excel" element={<ExcelPasteDemo/>}/>
 				</Route>
 			</Routes>
 		</BrowserRouter>

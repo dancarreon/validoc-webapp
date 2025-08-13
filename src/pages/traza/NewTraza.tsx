@@ -26,6 +26,10 @@ export const NewTraza = () => {
     const [showErrors, setShowErrors] = useState(false)
     const [message, setMessage] = useState('')
     const [tads, setTads] = useState<DropdownElement[]>([]);
+    const tipoTrazas: DropdownElement[] = [
+        {id: 'NACIONAL', name: 'Nacional'},
+        {id: 'INTERNACIONAL', name: 'Internacional'},
+    ];
     const [claves, setClaves] = useState<DropdownElement[]>([]);
     const [razones, setRazones] = useState<DropdownElement[]>([]);
     const [productos, setProductos] = useState<DropdownElement[]>([]);
@@ -195,6 +199,8 @@ export const NewTraza = () => {
             }
         }
 
+
+
         function calcTotal() {
             let total = 0;
 
@@ -234,6 +240,11 @@ export const NewTraza = () => {
                     <Header title='Datos Nacional'/>
                 </div>
                 <form onSubmit={handleSubmit(onSubmit)} className='mt-5 w-full'>
+                    <CustomDropdown options={tipoTrazas}
+                                    placeholder='Tipo de Traza'
+                                    value={watch('tipoTraza')}
+                                    {...register('tipoTraza')}
+                                    onChange={(value) => setValue('tipoTraza', value)}/>
                     <CustomDropdown options={tads}
                                     placeholder='TAD Dirección'
                                     value={watch('tadDireccionId')}

@@ -1,0 +1,4 @@
+export enum TipoTrazaType {
+	NACIONAL = "NACIONAL",
+	INTERNACIONAL = "INTERNACIONAL",
+}

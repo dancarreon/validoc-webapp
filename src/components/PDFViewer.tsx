@@ -51,6 +51,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [, setPdfPage] = useState<unknown>(null);
 
+	// PDF dimensions state
+	const [pdfDimensions, setPdfDimensions] = useState<{ width: number; height: number } | null>(null);
+
 	const [isLoading, setIsLoading] = useState(false);
 	const [show, setShow] = useState(false)
 	const [showErrors, setShowErrors] = useState(false)
@@ -79,6 +82,31 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 	}
 
 	const path: string = isAdmin ? "/admin" : "/user";
+
+	// Helper functions to convert between viewport and PDF coordinates
+	const viewportToPdfCoordinates = useCallback((viewportX: number, viewportY: number, viewportWidth: number, viewportHeight: number) => {
+		if (!pdfDimensions) return { x: viewportX, y: viewportY };
+
+		const scaleX = pdfDimensions.width / viewportWidth;
+		const scaleY = pdfDimensions.height / viewportHeight;
+
+		return {
+			x: viewportX * scaleX,
+			y: viewportY * scaleY
+		};
+	}, [pdfDimensions]);
+
+	const pdfToViewportCoordinates = useCallback((pdfX: number, pdfY: number, viewportWidth: number, viewportHeight: number) => {
+		if (!pdfDimensions) return { x: pdfX, y: pdfY };
+
+		const scaleX = viewportWidth / pdfDimensions.width;
+		const scaleY = viewportHeight / pdfDimensions.height;
+
+		return {
+			x: pdfX * scaleX,
+			y: pdfY * scaleY
+		};
+	}, [pdfDimensions]);
 
 	const {
 		register,
@@ -270,7 +298,38 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 				console.log('Template already loaded, skipping:', templateId);
 			}
 		}
-	}, [setValue, template?.id]); // Only depend on template ID, not the entire template object
+	}, [fields.length, setValue, template, template?.id]); // Only depend on template ID, not the entire template object
+
+	// Load PDF dimensions when file changes
+	useEffect(() => {
+		if (!file) return;
+
+		const loadPdfDimensions = async () => {
+			try {
+				let pdfData: string | ArrayBuffer;
+				if (file instanceof File) {
+					pdfData = await file.arrayBuffer();
+				} else {
+					pdfData = file;
+				}
+
+				const pdf = await pdfjs.getDocument(pdfData).promise;
+				const page = await pdf.getPage(1);
+				const viewport = page.getViewport({ scale: 1 });
+
+				setPdfDimensions({
+					width: viewport.width,
+					height: viewport.height
+				});
+
+				console.log('PDF dimensions loaded:', { width: viewport.width, height: viewport.height });
+			} catch (error) {
+				console.error('Error loading PDF dimensions:', error);
+			}
+		};
+
+		loadPdfDimensions();
+	}, [file]);
 
 	// PDF rendering is now handled by react-pdf Document component
 	// But we still need canvas for color picking
@@ -349,16 +408,21 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 
 				const pdfRect = pdfElement.getBoundingClientRect();
 
-				// Calculate coordinates relative to the PDF element (not the container)
-				const x = (rect.left - pdfRect.left) / scale;
-				const y = (rect.top - pdfRect.top) / scale;
-				const width = rect.width / scale;
-				const height = rect.height / scale;
+				// Calculate viewport coordinates relative to the PDF element
+				const viewportX = (rect.left - pdfRect.left) / scale;
+				const viewportY = (rect.top - pdfRect.top) / scale;
+				const viewportWidth = rect.width / scale;
+				const viewportHeight = rect.height / scale;
+
+				// Convert to PDF coordinates
+				const pdfCoords = viewportToPdfCoordinates(viewportX, viewportY, pdfRect.width / scale, pdfRect.height / scale);
+				const pdfWidth = viewportToPdfCoordinates(viewportWidth, 0, pdfRect.width / scale, pdfRect.height / scale).x;
+				const pdfHeight = viewportToPdfCoordinates(0, viewportHeight, pdfRect.width / scale, pdfRect.height / scale).y;
 
 				// Only create field if we have a valid selection with minimum size
-				if (width > 5 && height > 5) {
-					setPendingFieldRect({ x, y, width, height });
-					setPendingField({ x, y, width, height });
+				if (pdfWidth > 5 && pdfHeight > 5) {
+					setPendingFieldRect({ x: pdfCoords.x, y: pdfCoords.y, width: pdfWidth, height: pdfHeight });
+					setPendingField({ x: pdfCoords.x, y: pdfCoords.y, width: pdfWidth, height: pdfHeight });
 					// Clear the selection after creating the field
 					selection.removeAllRanges();
 				}
@@ -386,7 +450,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 			document.removeEventListener('mousedown', preventTextSelection);
 			document.removeEventListener('selectstart', preventTextSelection);
 		};
-	}, [scale, isSelecting]);
+	}, [scale, isSelecting, viewportToPdfCoordinates]);
 
 	const handleClick = async (e: React.MouseEvent) => {
 		// Only handle color picking when in color picking mode
@@ -511,9 +575,17 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 		if (!pdfElement) return;
 
 		const pdfRect = pdfElement.getBoundingClientRect();
+
+		// Calculate viewport coordinates
+		const viewportX = (e.clientX - pdfRect.left) / scale;
+		const viewportY = (e.clientY - pdfRect.top) / scale;
+
+		// Convert to PDF coordinates
+		const pdfCoords = viewportToPdfCoordinates(viewportX, viewportY, pdfRect.width / scale, pdfRect.height / scale);
+
 		setDrawing({
-			x: (e.clientX - pdfRect.left) / scale,
-			y: (e.clientY - pdfRect.top) / scale
+			x: pdfCoords.x,
+			y: pdfCoords.y
 		});
 	}
 
@@ -527,26 +599,42 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 		const pdfRect = pdfElement.getBoundingClientRect();
 
 		if (drawing) {
-			const x2 = (e.clientX - pdfRect.left) / scale;
-			const y2 = (e.clientY - pdfRect.top) / scale;
-			const x = Math.min(drawing.x, x2);
-			const y = Math.min(drawing.y, y2);
-			const width = Math.abs(x2 - drawing.x);
-			const height = Math.abs(y2 - drawing.y);
+			// Calculate viewport coordinates
+			const viewportX2 = (e.clientX - pdfRect.left) / scale;
+			const viewportY2 = (e.clientY - pdfRect.top) / scale;
+
+			// Convert to PDF coordinates
+			const pdfCoords2 = viewportToPdfCoordinates(viewportX2, viewportY2, pdfRect.width / scale, pdfRect.height / scale);
+
+			const x = Math.min(drawing.x, pdfCoords2.x);
+			const y = Math.min(drawing.y, pdfCoords2.y);
+			const width = Math.abs(pdfCoords2.x - drawing.x);
+			const height = Math.abs(pdfCoords2.y - drawing.y);
 			setRect({ x, y, width, height });
 		} else if (draggingFieldId) {
 			const field = fields.find(f => f.id === draggingFieldId);
 			if (!field) return;
-			const x = (e.clientX - pdfRect.left - dragOffset.current.x) / scale;
-			const y = (e.clientY - pdfRect.top - dragOffset.current.y) / scale;
+
+			// Calculate viewport coordinates
+			const viewportX = (e.clientX - pdfRect.left - dragOffset.current.x) / scale;
+			const viewportY = (e.clientY - pdfRect.top - dragOffset.current.y) / scale;
+
+			// Convert to PDF coordinates
+			const pdfCoords = viewportToPdfCoordinates(viewportX, viewportY, pdfRect.width / scale, pdfRect.height / scale);
+
 			setFields((prev) =>
-				prev.map((f) => (f.id === draggingFieldId ? { ...f, x, y } : f))
+				prev.map((f) => (f.id === draggingFieldId ? { ...f, x: pdfCoords.x, y: pdfCoords.y } : f))
 			);
 		} else if (resizingFieldId && resizeMode) {
 			const field = fields.find(f => f.id === resizingFieldId);
 			if (!field) return;
-			const x = (e.clientX - pdfRect.left) / scale;
-			const y = (e.clientY - pdfRect.top) / scale;
+
+			// Calculate viewport coordinates
+			const viewportX = (e.clientX - pdfRect.left) / scale;
+			const viewportY = (e.clientY - pdfRect.top) / scale;
+
+			// Convert to PDF coordinates
+			const pdfCoords = viewportToPdfCoordinates(viewportX, viewportY, pdfRect.width / scale, pdfRect.height / scale);
 
 			setFields((prev) =>
 				prev.map((f) =>
@@ -554,10 +642,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 						? {
 							...f,
 							width: resizeMode === 'horizontal' || resizeMode === 'both'
-								? Math.max(7.5, x - field.x)
+								? Math.max(7.5, pdfCoords.x - field.x)
 								: field.width,
 							height: resizeMode === 'vertical' || resizeMode === 'both'
-								? Math.max(7.5, y - field.y)
+								? Math.max(7.5, pdfCoords.y - field.y)
 								: field.height,
 						}
 						: f
@@ -655,13 +743,21 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 		if (!pdfElement) return;
 
 		const pdfRect = pdfElement.getBoundingClientRect();
+
+		// Calculate viewport coordinates
+		const viewportX = (e.clientX - pdfRect.left) / scale - field.x;
+		const viewportY = (e.clientY - pdfRect.top) / scale - field.y;
+
+		// Convert to PDF coordinates for offset calculation
+		const pdfOffset = viewportToPdfCoordinates(viewportX, viewportY, pdfRect.width / scale, pdfRect.height / scale);
+
 		dragOffset.current = {
-			x: (e.clientX - pdfRect.left) / scale - field.x,
-			y: (e.clientY - pdfRect.top) / scale - field.y,
+			x: pdfOffset.x,
+			y: pdfOffset.y,
 		};
 		setActiveFieldId(id);
 		setDraggingFieldId(id);
-	}, [contextMenu, scale]);
+	}, [contextMenu, scale, viewportToPdfCoordinates]);
 
 
 
@@ -737,7 +833,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 									</button>
 									<button type='button'
 										className="ml-2 px-2 py-1 bg-green-600 text-white rounded"
-										onClick={() => createPdfWithFields(file!, fields, containerWidth)}>
+										onClick={() => createPdfWithFields(file!, fields)}>
 										Generar PDF con Etiquetas
 									</button>
 								</>
@@ -792,99 +888,139 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 							visibility: 'hidden'
 						}}
 					/>
-					{fields.map((f) => (
-						<FieldOverlay
-							key={f.id}
-							field={f}
-							scale={scale}
-							isActive={activeFieldId === f.id}
-							onEdit={handleEditField}
-							onRemove={handleRemoveField}
-							onContextMenu={handleFieldContextMenu}
-							onMouseDown={startDraggingField}
-							onResize={startResizingField}
-							setActive={handleSetActiveFieldId}
-						/>
-					))}
-					{rect && !pendingField && (
-						<div className="absolute border-2 border-red-500"
-							style={{
-								left: rect.x! * scale,
-								top: rect.y! * scale,
-								width: rect.width! * scale,
-								height: rect.height! * scale
-							}} />
-					)}
+					{fields.map((f) => {
+						// Convert PDF coordinates to viewport coordinates for display
+						const pdfElement = containerRef.current?.querySelector('.react-pdf__Page');
+						const pdfRect = pdfElement?.getBoundingClientRect();
+						const viewportCoords = pdfRect ? pdfToViewportCoordinates(f.x, f.y, pdfRect.width / scale, pdfRect.height / scale) : { x: f.x, y: f.y };
+						const viewportWidth = pdfRect ? pdfToViewportCoordinates(f.width, 0, pdfRect.width / scale, pdfRect.height / scale).x : f.width;
+						const viewportHeight = pdfRect ? pdfToViewportCoordinates(0, f.height, pdfRect.width / scale, pdfRect.height / scale).y : f.height;
+
+						return (
+							<FieldOverlay
+								key={f.id}
+								field={{
+									...f,
+									x: viewportCoords.x,
+									y: viewportCoords.y,
+									width: viewportWidth,
+									height: viewportHeight
+								}}
+								scale={scale}
+								isActive={activeFieldId === f.id}
+								onEdit={handleEditField}
+								onRemove={handleRemoveField}
+								onContextMenu={handleFieldContextMenu}
+								onMouseDown={startDraggingField}
+								onResize={startResizingField}
+								setActive={handleSetActiveFieldId}
+							/>
+						);
+					})}
+					{rect && !pendingField && (() => {
+						// Convert PDF coordinates to viewport coordinates for display
+						const pdfElement = containerRef.current?.querySelector('.react-pdf__Page');
+						const pdfRect = pdfElement?.getBoundingClientRect();
+						const viewportCoords = pdfRect ? pdfToViewportCoordinates(rect.x!, rect.y!, pdfRect.width / scale, pdfRect.height / scale) : { x: rect.x!, y: rect.y! };
+						const viewportWidth = pdfRect ? pdfToViewportCoordinates(rect.width!, 0, pdfRect.width / scale, pdfRect.height / scale).x : rect.width!;
+						const viewportHeight = pdfRect ? pdfToViewportCoordinates(0, rect.height!, pdfRect.width / scale, pdfRect.height / scale).y : rect.height!;
+
+						return (
+							<div className="absolute border-2 border-red-500"
+								style={{
+									left: viewportCoords.x * scale,
+									top: viewportCoords.y * scale,
+									width: viewportWidth * scale,
+									height: viewportHeight * scale
+								}} />
+						);
+					})()}
 
 					{/* Highlight selected text area */}
-					{pendingField && pendingFieldRect && !isSelecting && (
-						<div className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-20"
-							style={{
-								left: (pendingFieldRect.x ?? 0) * scale,
-								top: (pendingFieldRect.y ?? 0) * scale,
-								width: (pendingFieldRect.width ?? 0) * scale,
-								height: (pendingFieldRect.height ?? 0) * scale
-							}} />
-					)}
+					{pendingField && pendingFieldRect && !isSelecting && (() => {
+						// Convert PDF coordinates to viewport coordinates for display
+						const pdfElement = containerRef.current?.querySelector('.react-pdf__Page');
+						const pdfRect = pdfElement?.getBoundingClientRect();
+						const viewportCoords = pdfRect ? pdfToViewportCoordinates(pendingFieldRect.x ?? 0, pendingFieldRect.y ?? 0, pdfRect.width / scale, pdfRect.height / scale) : { x: pendingFieldRect.x ?? 0, y: pendingFieldRect.y ?? 0 };
+						const viewportWidth = pdfRect ? pdfToViewportCoordinates(pendingFieldRect.width ?? 0, 0, pdfRect.width / scale, pdfRect.height / scale).x : pendingFieldRect.width ?? 0;
+						const viewportHeight = pdfRect ? pdfToViewportCoordinates(0, pendingFieldRect.height ?? 0, pdfRect.width / scale, pdfRect.height / scale).y : pendingFieldRect.height ?? 0;
+
+						return (
+							<div className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-20"
+								style={{
+									left: viewportCoords.x * scale,
+									top: viewportCoords.y * scale,
+									width: viewportWidth * scale,
+									height: viewportHeight * scale
+								}} />
+						);
+					})()}
 					{/* Field creation select */}
-					{pendingField && pendingFieldRect && (
-						<div className="absolute bg-black border rounded-md shadow p-2"
-							style={{
-								left: (pendingFieldRect.x ?? 0) * scale,
-								top: ((pendingFieldRect.y ?? 0) * scale) - 40,
-								zIndex: 1001,
-							}}
-							onClick={(e) => e.stopPropagation()}
-							onMouseDown={(e) => e.stopPropagation()}>
-							<label className="block text-xs mb-1 text-white">
-								{!isSelecting ? '📝 Texto seleccionado - ' : ''}Seleccione la propiedad a mostrar:
-							</label>
-							<select value={pendingFieldName}
-								onChange={e => setPendingFieldName(e.target.value as keyof TrazaType | keyof ClientType)}
+					{pendingField && pendingFieldRect && (() => {
+						// Convert PDF coordinates to viewport coordinates for display
+						const pdfElement = containerRef.current?.querySelector('.react-pdf__Page');
+						const pdfRect = pdfElement?.getBoundingClientRect();
+						const viewportCoords = pdfRect ? pdfToViewportCoordinates(pendingFieldRect.x ?? 0, pendingFieldRect.y ?? 0, pdfRect.width / scale, pdfRect.height / scale) : { x: pendingFieldRect.x ?? 0, y: pendingFieldRect.y ?? 0 };
+
+						return (
+							<div className="absolute bg-black border rounded-md shadow p-2"
+								style={{
+									left: viewportCoords.x * scale,
+									top: (viewportCoords.y * scale) - 40,
+									zIndex: 1001,
+								}}
 								onClick={(e) => e.stopPropagation()}
-								onMouseDown={(e) => e.stopPropagation()}
-								className="border rounded px-2 py-1 bg-white text-black border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[200px]">
-								<option value=''>-- Seleccione una propiedad --</option>
+								onMouseDown={(e) => e.stopPropagation()}>
+								<label className="block text-xs mb-1 text-white">
+									{!isSelecting ? '📝 Texto seleccionado - ' : ''}Seleccione la propiedad a mostrar:
+								</label>
+								<select value={pendingFieldName}
+									onChange={e => setPendingFieldName(e.target.value as keyof TrazaType | keyof ClientType)}
+									onClick={(e) => e.stopPropagation()}
+									onMouseDown={(e) => e.stopPropagation()}
+									className="border rounded px-2 py-1 bg-white text-black border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[200px]">
+									<option value=''>-- Seleccione una propiedad --</option>
 
-								{/* Traza Properties */}
-								<optgroup label="📊 Propiedades de Traza">
-									{trazaKeys.map(key => (
-										<option key={`traza-${key}`} value={key}>
-											📊 {key}
-										</option>
-									))}
-								</optgroup>
+									{/* Traza Properties */}
+									<optgroup label="📊 Propiedades de Traza">
+										{trazaKeys.map(key => (
+											<option key={`traza-${key}`} value={key}>
+												📊 {key}
+											</option>
+										))}
+									</optgroup>
 
-								{/* Client Properties */}
-								<optgroup label="👤 Propiedades de Cliente">
-									{clientKeys.map(key => (
-										<option key={`client-${key}`} value={key}>
-											👤 {key}
-										</option>
-									))}
-								</optgroup>
-							</select>
-							<button type="button"
-								className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
-								disabled={!pendingFieldName}
-								onClick={(e) => {
-									e.stopPropagation();
-									handleAddField();
-								}}>
-								{pendingField && 'id' in pendingField ? 'Editar' : 'Crear Campo'}
-							</button>
-							<button type="button"
-								className="ml-2 px-2 py-1 bg-gray-400 text-white rounded"
-								onClick={(e) => {
-									e.stopPropagation();
-									setPendingField(null);
-									setPendingFieldRect(null);
-									setPendingFieldName('');
-								}}>
-								Cancelar
-							</button>
-						</div>
-					)}
+									{/* Client Properties */}
+									<optgroup label="👤 Propiedades de Cliente">
+										{clientKeys.map(key => (
+											<option key={`client-${key}`} value={key}>
+												👤 {key}
+											</option>
+										))}
+									</optgroup>
+								</select>
+								<button type="button"
+									className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+									disabled={!pendingFieldName}
+									onClick={(e) => {
+										e.stopPropagation();
+										handleAddField();
+									}}>
+									{pendingField && 'id' in pendingField ? 'Editar' : 'Crear Campo'}
+								</button>
+								<button type="button"
+									className="ml-2 px-2 py-1 bg-gray-400 text-white rounded"
+									onClick={(e) => {
+										e.stopPropagation();
+										setPendingField(null);
+										setPendingFieldRect(null);
+										setPendingFieldName('');
+									}}>
+									Cancelar
+								</button>
+							</div>
+						);
+					})()}
 				</div>
 				{contextMenu && contextMenuField && (
 					<ContextMenu

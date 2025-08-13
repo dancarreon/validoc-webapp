@@ -59,7 +59,7 @@ export const Docs = () => {
 						}));
 
 						const pdfFile: File = new File([file], template.pdfFile, {type: 'application/pdf'});
-						await createPdfWithFields(pdfFile, fields, template.containerWidth, traza);
+						await createPdfWithFields(pdfFile, fields, traza);
 					} else {
 						console.error('Error fetching PDF file for template:', template.pdfFile);
 					}

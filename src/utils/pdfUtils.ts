@@ -13,8 +13,7 @@ import {TemplateType} from '../api/types/template-type.ts';
 export async function createPdfWithFields(
 	file: File | string,
 	fields: Field[],
-	containerWidth: number | undefined,
-	traza?: TrazaType | undefined
+	_traza?: TrazaType | undefined
 ) {
 	const arrayBuffer = typeof file === 'string'
 		? await fetch(file).then((res) => res.arrayBuffer())
@@ -28,27 +27,27 @@ export async function createPdfWithFields(
 
 	const page = pdfDoc.getPage(0);
 
-	const pdfWidth = page.getWidth();
 	const pdfHeight = page.getHeight();
-	const renderedWidth = containerWidth ?? 0;
-	const renderedHeight = renderedWidth ? renderedWidth * (pdfHeight / pdfWidth) : 0;
-	const scaleX = pdfWidth / renderedWidth;
-	const scaleY = pdfHeight / renderedHeight;
+
+	// Since we're now storing coordinates in PDF space, we don't need to scale them
+	// The fields are already in the correct PDF coordinate system
 
 	for (const field of fields) {
 		const size = field.fontSize || 6;
 
-		let pdfX = field.x * scaleX;
-		const pdfW = field.width * scaleX;
-		const pdfH = field.height * scaleY;
+		// Use field coordinates directly since they're already in PDF space
+		let pdfX = field.x;
+		const pdfW = field.width;
+		const pdfH = field.height;
 
-		const fieldTopY = pdfHeight - field.y * scaleY;
+		// PDF coordinates start from bottom-left, so we need to flip the Y coordinate
+		const fieldTopY = pdfHeight - field.y;
 		const pdfY = fieldTopY - size + size * 0.2;
 
 		let text = String(field.name);
 
-		if (traza && field.name in traza && traza[field.name as keyof TrazaType]) {
-			const value = traza[field.name as keyof TrazaType];
+		if (_traza && field.name in _traza && _traza[field.name as keyof TrazaType]) {
+			const value = _traza[field.name as keyof TrazaType];
 			if (isObject(value)) {
 				/*
 				switch (getCustomType(value)) {
@@ -77,7 +76,7 @@ export async function createPdfWithFields(
 		}
 
 		page.drawRectangle({
-			x: field.x * scaleX,
+			x: field.x,
 			y: fieldTopY - pdfH,
 			width: pdfW,
 			height: pdfH,
