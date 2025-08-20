@@ -17,6 +17,7 @@ import { Document, Page, pdfjs } from "react-pdf"
 import 'pdfjs-dist/web/pdf_viewer.css';
 import { createPdfWithFields } from '../utils/pdfUtils';
 import { Field } from '../api/types/field-types';
+import { DropdownSearch, DropdownElement } from './DropdownSearch.tsx';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -47,6 +48,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 	const [pickingColorForField, setPickingColorForField] = useState<string | null>(null);
 	const [isPickingColor, setIsPickingColor] = useState(false);
 
+	// Ref for focusing the dropdown when creating a new field
+	const dropdownRef = useRef<HTMLDivElement>(null);
+
 	// Canvas ref for color picking
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [, setPdfPage] = useState<unknown>(null);
@@ -66,14 +70,25 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 		? fields.find(f => f.id === contextMenu.fieldId)
 		: null;
 
-	const trazaKeys = useMemo(() => (
-		Object.keys(new Traza({})) as (keyof TrazaType)[])
-		.sort((a, b) => a.localeCompare(b)), []
-	);
+	const trazaKeys = useMemo(() => {
+		const keys = Object.keys(new Traza({})) as (keyof TrazaType)[];
+		return keys
+			.sort((a, b) => a.localeCompare(b))
+			.map(key => ({
+				id: key,
+				name: `📊 ${key}`
+			} as DropdownElement));
+	}, []);
 
-	const clientKeys = useMemo(() => (
-		Object.keys(new Client({})) as (keyof ClientType)[]
-	).sort((a, b) => a.localeCompare(b)), []);
+	const clientKeys = useMemo(() => {
+		const keys = Object.keys(new Client({})) as (keyof ClientType)[];
+		return keys
+			.sort((a, b) => a.localeCompare(b))
+			.map(key => ({
+				id: key,
+				name: `👤 ${key}`
+			} as DropdownElement));
+	}, []);
 
 	let isAdmin = false;
 
@@ -380,6 +395,50 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 			return () => clearTimeout(timeout);
 		}
 	}, [pickingColorForField]);
+
+	// Focus the dropdown when a new field is being created
+	useEffect(() => {
+		if (pendingField && pendingFieldRect && dropdownRef.current) {
+			// Small delay to ensure the element is rendered
+			const timeout = setTimeout(() => {
+				// Find the dropdown button inside the DropdownSearch component
+				const dropdownButton = dropdownRef.current?.querySelector('button');
+				if (dropdownButton) {
+					dropdownButton.focus();
+					dropdownButton.click(); // Open the dropdown automatically
+				}
+			}, 100);
+			return () => clearTimeout(timeout);
+		}
+	}, [pendingField, pendingFieldRect]);
+
+	// Handle keyboard events for field creation dialog
+	useEffect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			// Only handle keys when field creation dialog is open
+			if (!pendingField || !pendingFieldRect) return;
+
+			switch (e.key) {
+				case 'Enter':
+					// Create the field if a property is selected
+					if (pendingFieldName) {
+						e.preventDefault();
+						handleAddField();
+					}
+					break;
+				case 'Escape':
+					// Cancel field creation
+					e.preventDefault();
+					setPendingField(null);
+					setPendingFieldRect(null);
+					setPendingFieldName('');
+					break;
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [pendingField, pendingFieldRect, pendingFieldName]);
 
 	// text selection to field
 	useEffect(() => {
@@ -974,31 +1033,20 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 								<label className="block text-xs mb-1 text-white">
 									{!isSelecting ? '📝 Texto seleccionado - ' : ''}Seleccione la propiedad a mostrar:
 								</label>
-								<select value={pendingFieldName}
-									onChange={e => setPendingFieldName(e.target.value as keyof TrazaType | keyof ClientType)}
-									onClick={(e) => e.stopPropagation()}
-									onMouseDown={(e) => e.stopPropagation()}
-									className="border rounded px-2 py-1 bg-white text-black border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[200px]">
-									<option value=''>-- Seleccione una propiedad --</option>
-
-									{/* Traza Properties */}
-									<optgroup label="📊 Propiedades de Traza">
-										{trazaKeys.map(key => (
-											<option key={`traza-${key}`} value={key}>
-												📊 {key}
-											</option>
-										))}
-									</optgroup>
-
-									{/* Client Properties */}
-									<optgroup label="👤 Propiedades de Cliente">
-										{clientKeys.map(key => (
-											<option key={`client-${key}`} value={key}>
-												👤 {key}
-											</option>
-										))}
-									</optgroup>
-								</select>
+								<div className="text-xs text-gray-300 mb-2">
+									💡 <strong>Atajos:</strong> Enter para crear • Escape para cancelar
+								</div>
+								
+								{/* Combined dropdown for both Traza and Client properties */}
+								<div className="mb-3" ref={dropdownRef}>
+									<DropdownSearch
+										options={[...trazaKeys, ...clientKeys]}
+										value={pendingFieldName}
+										onChange={(value) => setPendingFieldName(value as keyof TrazaType | keyof ClientType)}
+										placeholder="Seleccione una propiedad"
+										className="w-full"
+									/>
+								</div>
 								<button type="button"
 									className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
 									disabled={!pendingFieldName}
@@ -1006,7 +1054,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 										e.stopPropagation();
 										handleAddField();
 									}}>
-									{pendingField && 'id' in pendingField ? 'Editar' : 'Crear Campo'}
+									{pendingField && 'id' in pendingField ? 'Editar' : 'Crear Campo'} <span className="text-xs opacity-75">(Enter)</span>
 								</button>
 								<button type="button"
 									className="ml-2 px-2 py-1 bg-gray-400 text-white rounded"
@@ -1016,7 +1064,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ file, onSaveFields, templa
 										setPendingFieldRect(null);
 										setPendingFieldName('');
 									}}>
-									Cancelar
+									Cancelar <span className="text-xs opacity-75">(Esc)</span>
 								</button>
 							</div>
 						);

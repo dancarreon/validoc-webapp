@@ -6,6 +6,7 @@ import {RazonType} from "./razon-types.ts";
 import {ProductType} from "./product-types.ts";
 import {StateType} from "./state-types.ts";
 import {TipoTrazaType} from "./tipo-traza-type.ts";
+import {ClientType} from "./client-types.ts";
 
 export interface TrazaType {
 	id: string;
@@ -63,6 +64,8 @@ export interface TrazaType {
 	origenEstado: StateType;
 	destinoCiudad: string;
 	destinoEstado: StateType;
+	cliente?: ClientType;
+	clienteId?: string;
 }
 
 export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> {
@@ -122,6 +125,8 @@ export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> 
 	origenEstado!: StateType;
 	destinoCiudad!: string;
 	destinoEstado!: StateType;
+	cliente?: ClientType;
+	clienteId?: string;
 }
 
 export type CreateTrazaType = Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'>;
@@ -185,4 +190,5 @@ export const TrazaSchema: ZodType = z.object({
 		name: z.string(),
 		status: z.nativeEnum(StatusType)
 	}).optional(),
+	clienteId: z.string().nullable().optional(),
 });

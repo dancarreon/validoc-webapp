@@ -34,11 +34,12 @@ import {CreateTrazaType} from '../api/types/traza-types';
 import {StatusType} from '../api/types/status-type';
 import {createTraza} from '../api/trazas-api';
 import {getAllTads} from '../api/tads-api';
-import {getAllClaves} from '../api/claves-api';
-import {getAllRazones} from '../api/razones-api';
 import {TadType} from '../api/types/tad-types';
 import {ClaveType} from '../api/types/clave-types';
 import {RazonType} from '../api/types/razon-types';
+import {ClientType} from '../api/types/client-types';
+import {fetchClaves, fetchRazones} from "../pages/utils/utils.ts";
+import {getAllClients} from '../api/clients-api';
 
 interface AttributeValuePair {
 	attribute: string;
@@ -84,7 +85,7 @@ const TRAZA_ATTRIBUTES = [
 	{value: 'numeroLicencia', label: 'Número de Licencia'},
 
 	// DATOS PARA ELABORACION DE FACTURA (Invoice Data)
-	{value: 'cfi', label: 'CFI (CRE que Facturará)'},
+	{value: 'clienteId', label: 'CFI (CRE que Facturará)'},
 	{value: 'destino', label: 'Destino'},
 	{value: 'destinoCorto', label: 'Destino Corto'},
 	{value: 'litrosTotales', label: 'Litros Totales'},
@@ -235,6 +236,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 	const [successMessage, setSuccessMessage] = useState('');
 	const [claves, setClaves] = useState<ClaveType[]>([]);
 	const [razones, setRazones] = useState<RazonType[]>([]);
+	const [clients, setClients] = useState<ClientType[]>([]);
 	const pasteAreaRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 
@@ -550,34 +552,24 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 		}
 	};
 
-	// Function to fetch all claves
-	const fetchClaves = async () => {
-		try {
-			const allClaves = await getAllClaves(0, 1000);
-			if (allClaves) {
-				setClaves(allClaves);
-			}
-		} catch (error) {
-			console.log('Error fetching claves:', error);
-		}
-	};
-
-	// Function to fetch all razones
-	const fetchRazones = async () => {
-		try {
-			const allRazones = await getAllRazones(0, 1000);
-			if (allRazones) {
-				setRazones(allRazones);
-			}
-		} catch (error) {
-			console.log('Error fetching razones:', error);
-		}
-	};
-
-	// Fetch claves and razones when component mounts
+	// Fetch claves, razones, and clients when component mounts
 	useEffect(() => {
-		fetchClaves();
-		fetchRazones();
+		fetchClaves(setClaves)
+		fetchRazones(setRazones);
+		
+		// Fetch clients
+		const fetchClients = async () => {
+			try {
+				const allClients = await getAllClients(0, 1000); // Get a large number to search through all
+				if (allClients) {
+					setClients(allClients);
+				}
+			} catch (error) {
+				console.error('Error fetching clients:', error);
+			}
+		};
+		
+		fetchClients();
 	}, []);
 
 	const handlePaste = useCallback((e: React.ClipboardEvent) => {
@@ -623,6 +615,13 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 	const handleRazonSelection = (sectionIndex: number, rowIndex: number, razonId: string) => {
 		const newSections = [...sections];
 		newSections[sectionIndex].rows[rowIndex].value = razonId;
+		newSections[sectionIndex].rows[rowIndex].isValueModified = true;
+		setSections(newSections);
+	};
+
+	const handleClientSelection = (sectionIndex: number, rowIndex: number, clientId: string) => {
+		const newSections = [...sections];
+		newSections[sectionIndex].rows[rowIndex].value = clientId;
 		newSections[sectionIndex].rows[rowIndex].isValueModified = true;
 		setSections(newSections);
 	};
@@ -749,6 +748,8 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 							// Skip - will be handled by dropdown selection
 						} else if (attribute === 'razonSocialComercialId') {
 							// Skip - will be handled by dropdown selection
+						} else if (attribute === 'clienteId') {
+							// Skip - will be handled by dropdown selection
 						} else if (['origenCiudad', 'origenEstado', 'destinoCiudad', 'destinoEstado'].includes(attribute)) {
 							// Skip location attributes - they are not needed in the Traza object
 							// Do nothing - skip this attribute
@@ -805,6 +806,15 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 			section.rows.forEach(row => {
 				if (row.attribute === 'razonSocialComercialId' && row.value.trim()) {
 					trazaData.razonSocialComercialId = row.value.trim();
+				}
+			});
+		});
+
+		// Get Cliente ID from dropdown selection
+		sections.forEach(section => {
+			section.rows.forEach(row => {
+				if (row.attribute === 'clienteId' && row.value.trim()) {
+					trazaData.clienteId = row.value.trim();
 				}
 			});
 		});
@@ -1024,6 +1034,10 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 															['tadDireccionId', 'claveConcentradoraId', 'razonSocialComercialId', 'productoId', 'tipoTraza'].includes(attr.value)
 														);
 
+														const clients = availableAttributes.filter(attr =>
+															['clienteId'].includes(attr.value)
+														);
+
 
 														return (
 															<>
@@ -1082,11 +1096,21 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 																	</optgroup>
 																)}
 
-
 																{/* BUSINESS ENTITIES */}
 																{businessEntities.length > 0 && (
 																	<optgroup label="🏢 ENTIDADES COMERCIALES">
 																		{businessEntities.map(attr => (
+																			<option key={attr.value} value={attr.value}>
+																				{attr.label}
+																			</option>
+																		))}
+																	</optgroup>
+																)}
+
+																{/* CLIENTS */}
+																{clients.length > 0 && (
+																	<optgroup label="🏢 CLIENTES CFI">
+																		{clients.map(attr => (
 																			<option key={attr.value} value={attr.value}>
 																				{attr.label}
 																			</option>
@@ -1144,6 +1168,21 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 														{razones.map(razon => (
 															<option key={razon.id} value={razon.id}>
 																{razon.name}
+															</option>
+														))}
+													</select>
+												) : row.attribute === 'clienteId' && clients.length > 0 ? (
+													<select
+														value={row.value}
+														onChange={(e) => handleClientSelection(sectionIndex, rowIndex, e.target.value)}
+														className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+															row.value ? 'border-green-500 bg-white text-gray-900' : 'border-gray-300 bg-white text-gray-900'
+														}`}
+													>
+														<option value="">Seleccionar Cliente...</option>
+														{clients.map(client => (
+															<option key={client.id} value={client.id}>
+																{client.noCliente} - {client.name}
 															</option>
 														))}
 													</select>

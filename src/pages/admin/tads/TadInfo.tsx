@@ -3,7 +3,7 @@ import {getTad, updateTad} from "../../../api/tads-api.ts";
 import {InfoProps, PageInfoTemplate} from "../../templates/PageInfoTemplate.tsx";
 import {useEffect, useState} from "react";
 import {getAllStates, getTotalStates} from "../../../api/states-api.ts";
-import {DropdownElement} from "../../../components/CustomDropdown.tsx";
+import {DropdownElement} from "../../../components/DropdownSearch.tsx";
 
 const infoProps = {
     getRecord: getTad,

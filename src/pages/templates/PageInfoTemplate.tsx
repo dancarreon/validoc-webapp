@@ -13,7 +13,7 @@ import {TextInput} from "../../components/TextInput.tsx";
 import {Button} from "../../components/Button.tsx";
 import {StatusType} from "../../api/types/status-type.ts";
 import {AreaText} from "../../components/AreaText.tsx";
-import {CustomDropdown, DropdownElement} from "../../components/CustomDropdown.tsx";
+import {DropdownSearch, DropdownElement} from "../../components/DropdownSearch.tsx";
 
 export type InfoProps<T> = {
     getRecord: (recordId: string) => Promise<T>;
@@ -134,7 +134,7 @@ export const PageInfoTemplate = <T extends object>({props}: { props: InfoProps<T
                                         )
                                     } else if (key.includes('Id')) {
                                         return (
-                                            <CustomDropdown
+                                            <DropdownSearch
                                                 key={key}
                                                 placeholder={key}
                                                 value={watch(key as Path<T>)}

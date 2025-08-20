@@ -12,7 +12,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {ZodType} from "zod";
 import {useNavigate} from "react-router";
 import {StatusType} from "../../api/types/status-type.ts";
-import {CustomDropdown, DropdownElement} from "../../components/CustomDropdown.tsx";
+import {DropdownSearch, DropdownElement} from "../../components/DropdownSearch.tsx";
 
 export type NewProps<T> = {
 	title: string;
@@ -113,7 +113,7 @@ export const PageNewTemplate = <T extends object>({props}: { props: NewProps<T> 
 								if (key !== 'status') {
 									if (key.includes('Id')) {
 										return (
-											<CustomDropdown key={key}
+											<DropdownSearch key={key}
 															options={props.lists || []}
 															placeholder={key}
 															value={watch(key as Path<T>)}
