@@ -21,6 +21,7 @@ import {RazonType} from "../../api/types/razon-types.ts";
 import {ClaveType} from "../../api/types/clave-types.ts";
 import {fetchClaves, fetchRazones} from "../utils/utils.ts";
 import {getAllClients} from "../../api/clients-api.ts";
+import {getAllSolicitantes} from "../../api/solicitante-api.ts";
 
 export const NewTraza = () => {
 
@@ -36,6 +37,7 @@ export const NewTraza = () => {
 	const [razones, setRazones] = useState<RazonType[]>([]);
 	const [clients, setClients] = useState<DropdownElement[]>([]);
 	const [productos, setProductos] = useState<DropdownElement[]>([]);
+	const [solicitantes, setSolicitantes] = useState<DropdownElement[]>([]);
 	const [totalLitros, setTotalLitros] = useState<number>(0);
 	const [isLoading, setIsLoading] = useState(false);
 	const [traza, setTraza] = useState<TrazaType | null>(null);
@@ -97,7 +99,6 @@ export const NewTraza = () => {
 		}
 	}
 
-	// TODO : abstract these methods since all of them are similar
 	const fetchTads = async () => {
 		const total = await getTotalTads();
 		const tads = await getAllTads(0, total >= 10 ? total : PAGE_SIZE);
@@ -142,6 +143,23 @@ export const NewTraza = () => {
 			}
 		} catch (error) {
 			console.error('Error fetching clients:', error);
+		}
+	}
+
+	const fetchSolicitantes = async () => {
+		try {
+			const allSolicitantes = await getAllSolicitantes(0, 1000); // Get a large number to search through all
+			if (allSolicitantes) {
+				const dropdownSolicitantes = allSolicitantes.map((solicitante) => {
+					return {
+						id: solicitante.id,
+						name: solicitante.name,
+					} as DropdownElement;
+				});
+				setSolicitantes(dropdownSolicitantes);
+			}
+		} catch (error) {
+			console.error('Error fetching Solicitantes:', error);
 		}
 	}
 
@@ -212,6 +230,7 @@ export const NewTraza = () => {
 		fetchRazones(setRazones);
 		fetchClients();
 		fetchProductos();
+		fetchSolicitantes();
 
 		setTimeout(function () {
 			if (params.id && traza === null) {
@@ -234,6 +253,11 @@ export const NewTraza = () => {
 									value={watch('tipoTraza')}
 									{...register('tipoTraza')}
 									onChange={(value) => setValue('tipoTraza', value)}/>
+					<DropdownSearch options={solicitantes}
+									placeholder='Solicitantes'
+									value={watch('solicitanteId')}
+									{...register('solicitanteId')}
+									onChange={(value) => setValue('solicitanteId', value)}/>
 					<DropdownSearch options={clients}
 									placeholder='Cliente'
 									value={watch('clienteId')}

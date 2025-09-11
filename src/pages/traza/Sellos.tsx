@@ -136,7 +136,7 @@ export const Sellos = () => {
             <Container>
                 <Steps step={2} trazaId={params.id}/>
                 <Header title='Sellos'/>
-                <div className='flex justify-between pt-5 px-4'>
+                <div className='grid justify-center content-around h-40 pt-2 md:flex md:justify-between md:pt-5 md:px-4 md:h-15'>
                     <ButtonWithIcon styles='bg-black' title='Sellos' placeholder='Genera sellos aleatorios'
                                     onClick={generaSellos}>
                         <Dice/>

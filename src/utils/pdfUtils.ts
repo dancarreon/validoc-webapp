@@ -44,6 +44,55 @@ export async function createPdfWithFields(
 		const fieldTopY = pdfHeight - field.y;
 		const pdfY = fieldTopY - size + size * 0.2;
 
+		// Handle QR code fields differently
+		if (field.type === 'qr') {
+			// For QR code fields, we'll draw a placeholder rectangle and add a label
+			// In a full implementation, you would generate and embed an actual QR code image
+			page.drawRectangle({
+				x: field.x,
+				y: fieldTopY - pdfH,
+				width: pdfW,
+				height: pdfH,
+				color: field.qrBackgroundColor
+					? rgb(
+						parseInt(field.qrBackgroundColor.slice(1, 3), 16) / 255,
+						parseInt(field.qrBackgroundColor.slice(3, 5), 16) / 255,
+						parseInt(field.qrBackgroundColor.slice(5, 7), 16) / 255
+					)
+					: rgb(1, 1, 1),
+			});
+
+			// Draw a border for the QR code field
+			page.drawRectangle({
+				x: field.x,
+				y: fieldTopY - pdfH,
+				width: pdfW,
+				height: pdfH,
+				color: rgb(0, 0, 0),
+				borderWidth: 1,
+			});
+
+			// Add a label indicating this is a QR code field
+			const qrLabel = `QR: ${field.qrData || 'Sample Data'}`;
+			const labelSize = Math.min(size, 8);
+			const labelWidth = customFont.widthOfTextAtSize(qrLabel, labelSize);
+			
+			// Center the label in the QR code field
+			const labelX = field.x + (pdfW - labelWidth) / 2;
+			const labelY = fieldTopY - pdfH / 2;
+
+			page.drawText(qrLabel, {
+				x: labelX,
+				y: labelY,
+				size: labelSize,
+				font: customFont,
+				color: rgb(0, 0, 0),
+				maxWidth: pdfW,
+			});
+
+			continue; // Skip the regular text drawing for QR fields
+		}
+
 		let text = String(field.name);
 
 		if (_traza && field.name in _traza && _traza[field.name as keyof TrazaType]) {

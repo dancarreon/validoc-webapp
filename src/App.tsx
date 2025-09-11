@@ -39,6 +39,12 @@ import {NewClient} from "./pages/admin/clients/NewClient.tsx";
 import {PDFLoader} from "./components/PDFLoader.tsx";
 import {QRCodeDemo} from "./pages/QRCodeDemo.tsx";
 import {ExcelPasteDemo} from "./pages/ExcelPasteDemo.tsx";
+import {Solicitantes} from "./pages/admin/solicitantes/Solicitantes.tsx";
+import {SolicitanteInfo} from "./pages/admin/solicitantes/SolicitanteInfo.tsx";
+import {NewSolicitante} from "./pages/admin/solicitantes/NewSolicitante.tsx";
+import {Consecutivos} from "./pages/admin/consecutivos/Consecutivos.tsx";
+import {ConsecutivoInfo} from "./pages/admin/consecutivos/ConsecutivoInfo.tsx";
+import {NewConsecutivo} from "./pages/admin/consecutivos/NewConsecutivo.tsx";
 
 const App = () => {
 	return (
@@ -111,6 +117,14 @@ const App = () => {
 					<Route path="clientes" element={<Clientes/>}/>
 					<Route path="clientes/:id" element={<ClientInfo/>}/>
 					<Route path="nuevo-cliente" element={<NewClient/>}/>
+					{/*Admin Solicitantes*/}
+					<Route path="solicitantes" element={<Solicitantes/>}/>
+					<Route path="solicitantes/:id" element={<SolicitanteInfo/>}/>
+					<Route path="nuevo-solicitante" element={<NewSolicitante/>}/>
+					{/*Admin Consecutivos*/}
+					<Route path="consecutivos" element={<Consecutivos/>}/>
+					<Route path="consecutivos/:id" element={<ConsecutivoInfo/>}/>
+					<Route path="nuevo-consecutivo" element={<NewConsecutivo/>}/>
 					{/*QR Codes*/}
 					<Route path="qr" element={<QRCodeDemo/>}/>
 					{/*Excel feature*/}

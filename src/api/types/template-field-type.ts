@@ -13,6 +13,13 @@ export interface TemplateFieldType {
     fontSize: number;
     align: string;
     color?: string;
+    type?: string;
+    // QR-specific properties
+    qrData?: string;
+    qrSize?: number;
+    qrColor?: string;
+    qrBackgroundColor?: string;
+    qrErrorCorrectionLevel?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -32,4 +39,11 @@ export class TemplateField implements Omit<TemplateFieldType, 'createdAt' | 'upd
     fontSize!: number;
     align!: string;
     color?: string;
+    type?: string;
+    // QR-specific properties
+    qrData?: string;
+    qrSize?: number;
+    qrColor?: string;
+    qrBackgroundColor?: string;
+    qrErrorCorrectionLevel?: string;
 }

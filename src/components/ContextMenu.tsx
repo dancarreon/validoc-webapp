@@ -2,10 +2,19 @@ import React, {useState} from 'react';
 import {Field} from '../api/types/field-types';
 import {ConfirmDialog} from './ConfirmDialog';
 
+// Extended Field type for internal use with QR properties
+type FieldWithQR = Field & {
+	qrData?: string;
+	qrSize?: number;
+	qrColor?: string;
+	qrBackgroundColor?: string;
+	qrErrorCorrectionLevel?: string;
+};
+
 type Props = {
 	contextMenu: { x: number, y: number, fieldId: string };
-	field: Field;
-	updateFieldProperty: (fieldId: string, prop: keyof Field, value: unknown) => void;
+	field: FieldWithQR;
+	updateFieldProperty: (fieldId: string, prop: keyof FieldWithQR, value: unknown) => void;
 	onDelete: (fieldId: string) => void;
 };
 

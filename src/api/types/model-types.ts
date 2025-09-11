@@ -9,4 +9,6 @@ export enum ModelType {
     TRANSPORTISTA = 'transportista',
     TEMPLATE = 'template',
     CLIENT = 'client',
+    SOLICITANTE = 'solicitante',
+    CONSECUTIVO = 'consecutivo',
 }

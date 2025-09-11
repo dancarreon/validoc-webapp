@@ -2,14 +2,24 @@ import React, {useState} from 'react';
 import {Field} from '../api/types/field-types';
 import {ConfirmDialog} from './ConfirmDialog';
 
+// Extended Field type for internal use with QR properties
+type FieldWithQR = Field & {
+	qrData?: string;
+	qrSize?: number;
+	qrColor?: string;
+	qrBackgroundColor?: string;
+	qrErrorCorrectionLevel?: string;
+};
+
 type FieldOverlayProps = {
-	field: Field;
+	field: FieldWithQR;
 	scale: number;
 	isActive: boolean;
-	onEdit: (f: Field) => void;
+	onEdit: (f: FieldWithQR) => void;
 	onRemove: (id: string) => void;
 	onContextMenu: (e: React.MouseEvent, id: string) => void;
-	onMouseDown: (e: React.MouseEvent, id: string, f: Field) => void;
+	onDoubleClick?: (e: React.MouseEvent, id: string) => void;
+	onMouseDown: (e: React.MouseEvent, id: string, f: FieldWithQR) => void;
 	onResize: (e: React.MouseEvent, id: string, mode: 'horizontal' | 'vertical' | 'both') => void;
 	setActive: (id: string) => void;
 };
@@ -21,6 +31,7 @@ export const FieldOverlay: React.FC<FieldOverlayProps> = ({
 															  onEdit,
 															  onRemove,
 															  onContextMenu,
+															  onDoubleClick,
 															  onMouseDown,
 															  onResize,
 															  setActive,
@@ -35,7 +46,13 @@ export const FieldOverlay: React.FC<FieldOverlayProps> = ({
 			e.stopPropagation();
 			setActive(field.id);
 		}}
-		onDoubleClick={() => onEdit(field)}
+		onDoubleClick={(e) => {
+			if (onDoubleClick) {
+				onDoubleClick(e, field.id);
+			} else {
+				onEdit(field);
+			}
+		}}
 		className={`pdf-overlay absolute border-2 ${isActive ? 'border-yellow-400 bg-yellow-100/90 shadow-lg' : 'border-blue-500 bg-blue-200/85'} cursor-move group noselect flex flex-col rounded-sm`}
 		style={{
 			left: field.x * scale,

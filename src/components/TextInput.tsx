@@ -21,15 +21,15 @@ export const TextInput = ({type, name, placeholder, value, onChange, onBlur, ref
                    onBlur={onBlur}
                    ref={ref}
                    readOnly={readOnly}
-                   className='peer h-10 w-83 sm:w-100 pl-3 border-t-0 border-l-0 border-r-0 border-b-2 border-gray-400
+                   className='peer h-10 w-83 md:w-100 sm:w-80 pl-3 border-t-0 border-l-0 border-r-0 border-b-2 border-gray-400
                    focus:text-black focus:bg-white focus:outline-none focus:border-b-4 focus:border-b-[#EC3113] mb-2
                    placeholder-transparent focus:rounded-t-sm'
             />
             {
                 type !== 'hidden' &&
-				<label htmlFor={name} className='absolute left-3 md:left-10 sm:left-10 -top-6.5 text-md text-gray-300
+				<label htmlFor={name} className='absolute left-3 md:left-10 sm:left-4 -top-6.5 text-md text-gray-300
 				peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-placeholder-shown:left-5
-				md:peer-placeholder-shown:left-13 sm:peer-placeholder-shown:left-13 transition-all cursor-text'>
+				md:peer-placeholder-shown:left-13 sm:peer-placeholder-shown:left-7 transition-all cursor-text'>
                     {placeholder.includes('Id') ? placeholder[0].toUpperCase() + placeholder.slice(1).replace('Id', '') : placeholder[0].toUpperCase() + placeholder.slice(1)}
 				</label>
             }

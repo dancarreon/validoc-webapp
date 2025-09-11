@@ -1,6 +1,7 @@
 import {StatusType} from "./status-type.ts";
 import {TemplateField} from "./template-field-type.ts";
 import {z, ZodType} from "zod";
+import {QrField} from "./qr-types.ts";
 
 export interface TemplateType {
 	id: string;
@@ -11,6 +12,7 @@ export interface TemplateType {
 	containerWidth?: number;
 	createdAt: Date;
 	updatedAt: Date;
+	qrField: QrField[] | null;
 }
 
 export class Template implements Omit<TemplateType, 'id' | 'createdAt' | 'updatedAt'> {
@@ -23,6 +25,7 @@ export class Template implements Omit<TemplateType, 'id' | 'createdAt' | 'update
 	fields!: TemplateField[];
 	pdfFile!: string;
 	containerWidth?: number | undefined;
+	qrField!: QrField[] | null;
 }
 
 export type CreateTemplateType = Omit<TemplateType, 'id' | 'createdAt' | 'updatedAt'>;

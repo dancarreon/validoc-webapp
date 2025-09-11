@@ -12,10 +12,12 @@ import {TemplateType} from "../api/types/template-type.ts";
 import {StatusType} from "../api/types/status-type.ts";
 import {ClientType} from "../api/types/client-types.ts";
 import * as React from "react";
+import {SolicitanteType} from "../api/types/solicitante-types.ts";
+import {ConsecutivoType} from "../api/types/consecutivo-types.ts";
 
 export type ListType<T> = {
 	model: ModelType;
-	elements: UserType[] | TrazaType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | TransportistaType[] | TemplateType[] | ClientType[] | T[];
+	elements: UserType[] | TrazaType[] | StateType[] | TadType[] | ProductType[] | ClaveType[] | TransportistaType[] | TemplateType[] | ClientType[] | SolicitanteType[] | ConsecutivoType[] | T[];
 }
 
 export const List = <T extends object>(
@@ -39,7 +41,7 @@ export const List = <T extends object>(
 		isAdmin = true;
 	}
 
-	const handleClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType) => {
+	const handleClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType | SolicitanteType | ConsecutivoType) => {
 		const path: string = isAdmin ? "/admin" : "/user";
 
 		if ("id" in element) {
@@ -63,11 +65,15 @@ export const List = <T extends object>(
 				navigate(path + '/pdfs/' + element.id);
 			} else if (model === ModelType.CLIENT) {
 				navigate(path + '/clientes/' + element.id);
+			} else if (model === ModelType.SOLICITANTE) {
+				navigate(path + '/solicitantes/' + element.id);
+			} else if (model === ModelType.CONSECUTIVO) {
+				navigate(path + '/consecutivos/' + element.id);
 			}
 		}
 	}
 
-	function getLabel(model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType): string {
+	function getLabel(model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType | SolicitanteType | ConsecutivoType): string {
 		if (model === ModelType.USER && "username" in element) {
 			return String(element.username);
 		} else if (model === ModelType.TAD && "ciudad" in element) {
@@ -82,12 +88,14 @@ export const List = <T extends object>(
 			return String(element.name);
 		} else if (model === ModelType.CLIENT && "noCliente" in element) {
 			return String(element.noCliente);
+		} else if (model === ModelType.CONSECUTIVO && "valor" in element) {
+			return String(element.valor);
 		} else {
 			return "name" in element && typeof element.name === "string" ? element.name : "";
 		}
 	}
 
-	function getNextLabel(element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType): string {
+	function getNextLabel(element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType | SolicitanteType | ConsecutivoType): string {
 		if ("estado" in element) {
 			return element.estado?.name as string;
 		} else if ("lastName" in element) {
@@ -100,7 +108,7 @@ export const List = <T extends object>(
 		return '';
 	}
 
-	const handleItemClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType) => {
+	const handleItemClick = (model: string, element: T | UserType | TrazaType | StateType | TadType | ProductType | ClaveType | TransportistaType | TemplateType | ClientType | SolicitanteType | ConsecutivoType) => {
 		if (onClick) {
 			onClick(element as T);
 		} else {

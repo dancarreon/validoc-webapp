@@ -32,6 +32,8 @@ export const Navbar = ({isAdmin}: { isAdmin?: boolean }) => {
 								{isAdmin && (<li><a href={'/' + prefix + '/razones'}>Razones</a></li>)}
 								{isAdmin && (<li><a href={'/' + prefix + '/transportistas'}>Transportistas</a></li>)}
 								{isAdmin && (<li><a href={'/' + prefix + '/clientes'}>Clientes</a></li>)}
+								{isAdmin && (<li><a href={'/' + prefix + '/solicitantes'}>Solicitantes</a></li>)}
+								{isAdmin && (<li><a href={'/' + prefix + '/consecutivos'}>Consecutivo</a></li>)}
 								{isAdmin && (<li><a href={'/' + prefix + '/pdfs'}>Plantillas PDF</a></li>)}
 								<li className='bg-[#EC3113]'>
 									<a href={'/'}>Salir</a>

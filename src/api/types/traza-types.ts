@@ -4,21 +4,24 @@ import {TadType} from "./tad-types.ts";
 import {ClaveType} from "./clave-types.ts";
 import {RazonType} from "./razon-types.ts";
 import {ProductType} from "./product-types.ts";
-import {StateType} from "./state-types.ts";
 import {TipoTrazaType} from "./tipo-traza-type.ts";
 import {ClientType} from "./client-types.ts";
+import { SolicitanteType } from "./solicitante-types.ts";
+import { ConsecutivoType } from "./consecutivo-types.ts";
 
 export interface TrazaType {
 	id: string;
 	tipoTraza?: TipoTrazaType;
-	tadDireccionId?: string;
+	tadDireccionId?: string | null;
 	tadDireccion?: TadType | undefined;
-	claveConcentradoraId?: string;
+	claveConcentradoraId?: string | null;
 	claveConcentradora?: ClaveType | undefined;
-	razonSocialComercialId?: string;
+	razonSocialComercialId?: string | null;
 	razonSocialComercial?: RazonType | undefined;
-	productoId?: string;
+	productoId?: string | null;
 	producto?: ProductType | undefined;
+	solicitanteId?: string | null;
+	solicitante?: SolicitanteType | undefined;
 	capAutotanque1?: number | null;
 	capAutotanque2?: number | null;
 	capAutotanque3?: number | null;
@@ -60,12 +63,10 @@ export interface TrazaType {
 	status?: StatusType;
 	createdAt?: Date;
 	updatedAt?: Date;
-	origenCiudad: TadType;
-	origenEstado: StateType;
-	destinoCiudad: string;
-	destinoEstado: StateType;
 	cliente?: ClientType;
 	clienteId?: string;
+	consecutivoId?: string | null;
+	consecutivo?: ConsecutivoType;
 }
 
 export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> {
@@ -83,6 +84,8 @@ export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> 
 	razonSocialComercial!: RazonType | undefined;
 	productoId!: string;
 	producto: ProductType | undefined;
+	solicitanteId?: string | null;
+	solicitante?: SolicitanteType | undefined;
 	capAutotanque1!: number | null;
 	capAutotanque2!: number | null;
 	capAutotanque3!: number | null;
@@ -121,12 +124,10 @@ export class Traza implements Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'> 
 	marcaUnidad1!: string | null;
 	folioCartaPorte!: string | null;
 	folioFiscalCartaPorte!: string | null;
-	origenCiudad!: TadType;
-	origenEstado!: StateType;
-	destinoCiudad!: string;
-	destinoEstado!: StateType;
 	cliente?: ClientType;
 	clienteId?: string;
+	consecutivoId?: string | null;
+	consecutivo?: ConsecutivoType;
 }
 
 export type CreateTrazaType = Omit<TrazaType, 'id' | 'createdAt' | 'updatedAt'>;
@@ -179,16 +180,6 @@ export const TrazaSchema: ZodType = z.object({
 	folioFiscalCartaPorte: z.string().nullable().optional(),
 	status: z.nativeEnum(StatusType).optional(),
 	tipoTraza: z.nativeEnum(TipoTrazaType).optional(),
-	origenCiudad: z.object({
-		estadoId: z.string(),
-		ciudad: z.string(),
-		status: z.nativeEnum(StatusType),
-		direccion: z.string()
-	}).optional(),
-	origenEstado: z.object({
-		id: z.string(),
-		name: z.string(),
-		status: z.nativeEnum(StatusType)
-	}).optional(),
 	clienteId: z.string().nullable().optional(),
+	solicitanteId: z.string().nullable().optional(),
 });
