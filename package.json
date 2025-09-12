@@ -16,6 +16,7 @@
     "axios": "1.11.0",
     "daisyui": "^5.0.0-beta.7",
     "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.54",
     "qrcode": "^1.5.4",

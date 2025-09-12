@@ -2,6 +2,7 @@ import {PDFDocument, rgb} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {Field} from '../api/types/field-types';
 import {TrazaType} from '../api/types/traza-types.ts';
+import {ClientType} from '../api/types/client-types.ts';
 import {UserType} from '../api/types/user-types.ts';
 import {StateType} from '../api/types/state-types.ts';
 import {TadType} from '../api/types/tad-types.ts';
@@ -13,8 +14,11 @@ import {TemplateType} from '../api/types/template-type.ts';
 export async function createPdfWithFields(
 	file: File | string,
 	fields: Field[],
-	_traza?: TrazaType | undefined
+	_traza?: TrazaType | undefined,
+	_client?: ClientType | undefined,
+	containerWidth?: number | null
 ) {
+
 	const arrayBuffer = typeof file === 'string'
 		? await fetch(file).then((res) => res.arrayBuffer())
 		: await file.arrayBuffer();
@@ -26,33 +30,44 @@ export async function createPdfWithFields(
 	const customFont = await pdfDoc.embedFont(fontBytes);
 
 	const page = pdfDoc.getPage(0);
-
+	const pdfWidth = page.getWidth();
 	const pdfHeight = page.getHeight();
 
-	// Since we're now storing coordinates in PDF space, we don't need to scale them
-	// The fields are already in the correct PDF coordinate system
+
+	// Apply coordinate scaling like ReactPDFGenerator for consistency
+	const scaleFactor = containerWidth ? pdfWidth / containerWidth : 1.0;
 
 	for (const field of fields) {
-		const size = field.fontSize || 6;
 
-		// Use field coordinates directly since they're already in PDF space
-		let pdfX = field.x;
-		const pdfW = field.width;
-		const pdfH = field.height;
+		// Apply scaling factor to convert from viewport coordinates to PDF coordinates
+		const fieldX = field.x * scaleFactor;
+		const fieldY = field.y * scaleFactor;
+		const fieldWidth = field.width * scaleFactor;
+		const fieldHeight = field.height * scaleFactor;
+		const scaledFontSize = (field.fontSize || 6) * scaleFactor;
+
+		// Clamp coordinates to PDF boundaries to prevent fields from going outside
+		const pdfX = Math.max(0, Math.min(fieldX, pdfWidth - fieldWidth));
+		const clampedY = Math.max(0, Math.min(fieldY, pdfHeight - fieldHeight));
+		
 
 		// PDF coordinates start from bottom-left, so we need to flip the Y coordinate
-		const fieldTopY = pdfHeight - field.y;
-		const pdfY = fieldTopY - size + size * 0.2;
+		// field.y is the top of the field in PDFViewer (top-left origin)
+		// We need to convert to PDF-lib coordinates (bottom-left origin)
+		const fieldBottomY = pdfHeight - clampedY - fieldHeight;
+		const pdfY = fieldBottomY + scaledFontSize * 0.2;
+
+
 
 		// Handle QR code fields differently
 		if (field.type === 'qr') {
 			// For QR code fields, we'll draw a placeholder rectangle and add a label
 			// In a full implementation, you would generate and embed an actual QR code image
 			page.drawRectangle({
-				x: field.x,
-				y: fieldTopY - pdfH,
-				width: pdfW,
-				height: pdfH,
+				x: pdfX,
+				y: fieldBottomY,
+				width: fieldWidth,
+				height: fieldHeight,
 				color: field.qrBackgroundColor
 					? rgb(
 						parseInt(field.qrBackgroundColor.slice(1, 3), 16) / 255,
@@ -64,22 +79,22 @@ export async function createPdfWithFields(
 
 			// Draw a border for the QR code field
 			page.drawRectangle({
-				x: field.x,
-				y: fieldTopY - pdfH,
-				width: pdfW,
-				height: pdfH,
+				x: pdfX,
+				y: fieldBottomY,
+				width: fieldWidth,
+				height: fieldHeight,
 				color: rgb(0, 0, 0),
 				borderWidth: 1,
 			});
 
 			// Add a label indicating this is a QR code field
 			const qrLabel = `QR: ${field.qrData || 'Sample Data'}`;
-			const labelSize = Math.min(size, 8);
+			const labelSize = Math.min(scaledFontSize, 8);
 			const labelWidth = customFont.widthOfTextAtSize(qrLabel, labelSize);
 			
 			// Center the label in the QR code field
-			const labelX = field.x + (pdfW - labelWidth) / 2;
-			const labelY = fieldTopY - pdfH / 2;
+			const labelX = pdfX + (fieldWidth - labelWidth) / 2;
+			const labelY = fieldBottomY + fieldHeight / 2;
 
 			page.drawText(qrLabel, {
 				x: labelX,
@@ -87,7 +102,7 @@ export async function createPdfWithFields(
 				size: labelSize,
 				font: customFont,
 				color: rgb(0, 0, 0),
-				maxWidth: pdfW,
+				maxWidth: fieldWidth,
 			});
 
 			continue; // Skip the regular text drawing for QR fields
@@ -95,64 +110,91 @@ export async function createPdfWithFields(
 
 		let text = String(field.name);
 
+		// Try to populate with actual data if traza or client data is provided
 		if (_traza && field.name in _traza && _traza[field.name as keyof TrazaType]) {
 			const value = _traza[field.name as keyof TrazaType];
 			if (isObject(value)) {
-				/*
-				switch (getCustomType(value)) {
-					case 'TadType': {
-						if (isTadType(value)) {
-							if (value !== null && value !== undefined) {
-								const ciudad = value;
-								text = ciudad?.ciudad?.toUpperCase()
-							}
-							//text = `TAD ${value.ciudad?.toUpperCase() || ''}, ${value.estado?.name?.toUpperCase() || ''}.\n${value.direccion?.toUpperCase() || ''}`;
-						}
-						break;
-					}
-				}
-				*/
+				// Handle complex objects if needed
+				text = String(value);
 			} else {
 				text = String(value);
 			}
+		} else if (_client && field.name in _client && _client[field.name as keyof ClientType]) {
+			const value = _client[field.name as keyof ClientType];
+			if (isObject(value)) {
+				// Handle complex client objects if needed
+				text = String(value);
+			} else {
+				text = String(value);
+			}
+		} else {
+			// If no data is provided, show a placeholder with the field name
+			text = `[${field.name}]`;
 		}
 
-		const textWidth = customFont.widthOfTextAtSize(text, size);
+		const textWidth = customFont.widthOfTextAtSize(text, scaledFontSize);
+		let textX = pdfX;
 		if (field.align === 'center') {
-			pdfX += (pdfW - textWidth) / 2;
+			textX += (fieldWidth - textWidth) / 2;
 		} else if (field.align === 'right') {
-			pdfX += pdfW - textWidth;
+			textX += fieldWidth - textWidth;
 		}
 
+		// Draw background rectangle to cover original PDF text
+		// Parse background color
+		let bgColor = rgb(1, 1, 1); // White by default
+		if (field.backgroundColor) {
+			try {
+				const hex = field.backgroundColor.replace('#', '');
+				const r = parseInt(hex.slice(0, 2), 16) / 255;
+				const g = parseInt(hex.slice(2, 4), 16) / 255;
+				const b = parseInt(hex.slice(4, 6), 16) / 255;
+				bgColor = rgb(r, g, b);
+			} catch (error) {
+				// Error parsing background color, use default
+			}
+		}
+		
+		// Draw the background rectangle (borderless)
 		page.drawRectangle({
-			x: field.x,
-			y: fieldTopY - pdfH,
-			width: pdfW,
-			height: pdfH,
-			color: field.backgroundColor
-				? rgb(
-					parseInt(field.backgroundColor.slice(1, 3), 16) / 255,
-					parseInt(field.backgroundColor.slice(3, 5), 16) / 255,
-					parseInt(field.backgroundColor.slice(5, 7), 16) / 255
-				)
-				: rgb(1, 1, 1),
+			x: pdfX,
+			y: fieldBottomY,
+			width: fieldWidth,
+			height: fieldHeight,
+			color: bgColor,
 		});
 
 		const lines = text.split('\n');
 		let currentLineY = pdfY;
+		
+		// Parse text color (default to black)
+		let textColor = rgb(0, 0, 0);
+		if (field.color) {
+			try {
+				const hex = field.color.replace('#', '');
+				const r = parseInt(hex.slice(0, 2), 16) / 255;
+				const g = parseInt(hex.slice(2, 4), 16) / 255;
+				const b = parseInt(hex.slice(4, 6), 16) / 255;
+				textColor = rgb(r, g, b);
+			} catch (error) {
+				// Error parsing text color, use default
+			}
+		}
+		
 		for (const line of lines) {
 			page.drawText(line, {
-				x: pdfX,
+				x: textX,
 				y: currentLineY,
-				size,
+				size: scaledFontSize,
 				font: customFont,
-				color: rgb(0, 0, 0),
-				maxWidth: pdfW,
+				color: textColor,
+				maxWidth: fieldWidth,
 			});
-			currentLineY -= size + 2;
+			currentLineY -= scaledFontSize + 2;
 		}
 	}
 
+	
 	const pdfBytes = await pdfDoc.save();
 	const blob = new Blob([pdfBytes], {type: 'application/pdf'});
 	const url = URL.createObjectURL(blob);

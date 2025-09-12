@@ -16,6 +16,7 @@ export type Field = {
 	align?: string; //'left' | 'center' | 'right';
 	saved?: boolean;
 	backgroundColor?: string;
+	color?: string; // For template compatibility
 	// QR-specific properties
 	qrData?: string;
 	qrSize?: number;

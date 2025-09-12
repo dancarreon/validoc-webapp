@@ -116,7 +116,8 @@ export const ContextMenu: React.FC<Props & { onPickColor: () => void }> = (
 					onClick={onPickColor}
 					className="flex items-center gap-2">
 				<div className="w-30 h-6 border border-gray-300 rounded inline-block"
-					 style={{background: field.backgroundColor || '#fff'}}/>
+					 style={{background: field.backgroundColor || field.color || '#fff'}}
+					 title={`Current color: ${field.backgroundColor || field.color || '#fff'}`}/>
 			</button>
 		</div>
 		<div className="flex justify-between items-center">
