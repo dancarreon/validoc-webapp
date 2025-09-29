@@ -20,6 +20,8 @@ import 'pdfjs-dist/web/pdf_viewer.css';
 import {createPdfWithFields} from '../utils/pdfUtils';
 import {ReactPDFGenerator} from './ReactPDFGenerator.tsx';
 import {Field} from '../api/types/field-types';
+import {TemplateField} from '../api/types/template-field-type';
+import {StatusType} from '../api/types/status-type';
 import {DropdownElement, DropdownSearch} from './DropdownSearch.tsx';
 // import {PDFLibViewer} from './PDFLibViewer.tsx'; // Available as experimental option
 
@@ -57,7 +59,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 	const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
 	const [pendingField, setPendingField] = useState<Partial<Field> | null>(null);
 	const [pendingFieldRect, setPendingFieldRect] = useState<Partial<Field> | null>(null);
-	const [pendingFieldName, setPendingFieldName] = useState<keyof TrazaType | keyof ClientType | 'qr_code' | ''>('');
+	type FieldName = Field['name'] | 'importe' | 'importe_con_iva' | 'importe_total' | 'importe_total_en_letras' | 'fecha_pemex' | 'cantidad_al_natural' | 'tadDireccion_ciudadEstado' | 'tadDireccion_direccion' | 'razonSocialComercial_razonSocial' | 'razonSocialComercial_direccion' | 'rfc' | 'noCliente' | 'name' | 'unbMx' | 'direccionCorta' | 'id2' | 'producto_clave' | 'producto_descripcion' | 'producto_nombre' | 'producto_temperatura' | 'producto_iva' | 'fechaHoraPemex_year' | 'fechaHoraPemex_month' | 'fechaHoraPemex_day' | 'fechaHoraTrasvase_year' | 'fechaHoraTrasvase_month' | 'fechaHoraTrasvase_day' | '';
+	const [pendingFieldName, setPendingFieldName] = useState<FieldName>('');
 	const [isSelecting, setIsSelecting] = useState(false); // Changed to false to disable manual drawing by default
 	const [pickingColorForField, setPickingColorForField] = useState<string | null>(null);
 	const [isPickingColor, setIsPickingColor] = useState(false);
@@ -491,44 +494,89 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		return () => document.removeEventListener('click', handleClickOutside);
 	}, [contextMenu, qrContextMenu]);
 
-	// Load template fields if provided (only if we haven't loaded this template yet)
+	// Load template fields if provided (only if we haven't loaded this specific template yet)
 	useEffect(() => {
 		if (template && Array.isArray(template.fields)) {
 			const templateId = template.id;
 
-
 			// Only load template fields if we haven't loaded this specific template yet
 			if (!loadedTemplatesRef.current.has(templateId)) {
-				const templateFields = template.fields.map(f => ({
-					id: f.id || crypto.randomUUID(),
-					name: f.name || '',
-					x: f.x || 0,
-					y: f.y || 0,
-					width: f.width || 50,
-					height: f.height || 20,
-					fontFamily: f.fontFamily || 'Helvetica',
-					fontSize: f.fontSize || 15,
-					align: f.align || 'left',
-					backgroundColor: f.color || '#ffffff',
-					type: f.type || 'data',
-					// QR-specific properties
-					qrData: (f as any).qrData || 'Sample QR Data',
-					qrSize: (f as any).qrSize || 100,
-					qrColor: (f as any).qrColor || '#000000',
-					qrBackgroundColor: (f as any).qrBackgroundColor || '#ffffff',
-					qrErrorCorrectionLevel: (f as any).qrErrorCorrectionLevel || 'M',
-				}) as FieldWithQR);
+				// If containerWidth is not available yet, wait a bit and try again
+				if (containerWidth === null) {
+					// Set a timeout to retry after a short delay
+					const timeoutId = setTimeout(() => {
+						if (containerRef.current) {
+							setContainerWidth(containerRef.current.offsetWidth);
+						}
+					}, 100);
+					
+					return () => clearTimeout(timeoutId);
+				}
+				// Normalize field coordinates based on container width differences
+				const normalizeFieldCoordinates = (field: TemplateField) => {
+					// If template has a saved containerWidth and current containerWidth is available
+					if (template.containerWidth && containerWidth) {
+						// Calculate the scaling factor between saved and current container width
+						const scaleFactor = containerWidth / template.containerWidth;
+						
+						return {
+							id: field.id || crypto.randomUUID(),
+							name: field.name || '',
+							x: (field.x || 0) * scaleFactor,
+							y: (field.y || 0) * scaleFactor,
+							width: (field.width || 50) * scaleFactor,
+							height: (field.height || 20) * scaleFactor,
+							fontFamily: field.fontFamily || 'Helvetica',
+							fontSize: field.fontSize || 15,
+							align: field.align || 'left',
+							backgroundColor: field.color || '#ffffff',
+							type: field.type || 'data',
+							// QR-specific properties
+							qrData: field.qrData || 'Sample QR Data',
+							qrSize: field.qrSize || 100,
+							qrColor: field.qrColor || '#000000',
+							qrBackgroundColor: field.qrBackgroundColor || '#ffffff',
+							qrErrorCorrectionLevel: field.qrErrorCorrectionLevel || 'M',
+						} as FieldWithQR;
+					} else {
+						// Fallback to original coordinates if no container width info available
+						return {
+							id: field.id || crypto.randomUUID(),
+							name: field.name || '',
+							x: field.x || 0,
+							y: field.y || 0,
+							width: field.width || 50,
+							height: field.height || 20,
+							fontFamily: field.fontFamily || 'Helvetica',
+							fontSize: field.fontSize || 15,
+							align: field.align || 'left',
+							backgroundColor: field.color || '#ffffff',
+							type: field.type || 'data',
+							// QR-specific properties
+							qrData: field.qrData || 'Sample QR Data',
+							qrSize: field.qrSize || 100,
+							qrColor: field.qrColor || '#000000',
+							qrBackgroundColor: field.qrBackgroundColor || '#ffffff',
+							qrErrorCorrectionLevel: field.qrErrorCorrectionLevel || 'M',
+						} as FieldWithQR;
+					}
+				};
+
+				const templateFields = template.fields.map(normalizeFieldCoordinates);
 
 				// If template has qrField array but no QR fields in fields array, create them
 				if (template.qrField && template.qrField.length > 0 && !templateFields.some(f => f.type === 'qr')) {
 					template.qrField.forEach((qrFieldData, index) => {
+						// Calculate scaling factor for QR field coordinates
+						const scaleFactor = (template.containerWidth && containerWidth) ? containerWidth / template.containerWidth : 1;
+						
 						const qrField: FieldWithQR = {
 							id: crypto.randomUUID(),
 							name: 'qr_code', // Use the standard qr_code name
-							x: 100 + (index * 120), // Offset multiple QR fields
-							y: 100,
-							width: 100,
-							height: 100,
+							x: (100 + (index * 120)) * scaleFactor, // Offset multiple QR fields, scaled
+							y: 100 * scaleFactor,
+							width: 100 * scaleFactor,
+							height: 100 * scaleFactor,
 							fontFamily: 'Helvetica',
 							fontSize: 15,
 							align: 'left',
@@ -549,7 +597,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				loadedTemplatesRef.current.add(templateId);
 			}
 		}
-	}, [fields.length, setValue, template, template?.id]); // Only depend on template ID, not the entire template object
+	}, [fields.length, setValue, template, template?.id, containerWidth]); // Include containerWidth to recalculate coordinates when it changes
 
 	// Load PDF dimensions when file changes
 	// useEffect(() => {
@@ -995,66 +1043,66 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		const backgroundColor = '#ffffff';
 
 		// Extract the actual field name from the prefixed key
-		let actualFieldName = pendingFieldName;
+		let actualFieldName: FieldName = pendingFieldName;
 		
 		if (pendingFieldName.startsWith('traza_')) {
-			actualFieldName = pendingFieldName.replace('traza_', '') as keyof TrazaType;
+			actualFieldName = pendingFieldName.replace('traza_', '') as FieldName;
 			
 			// For date breakdown fields, keep the suffix in the field name
 			// This way the field name itself indicates what part of the date to extract
 			if (actualFieldName.includes('_year') || actualFieldName.includes('_month') || actualFieldName.includes('_day')) {
 				// Keep the full name with suffix (e.g., 'fechaHoraPemex_year', 'fechaHoraTrasvase_year')
-				actualFieldName = actualFieldName as any;
+				// Keep the full name with suffix
 			}
 			// For TAD Direccion fields, keep the full name with suffix
 			else if (actualFieldName.includes('tadDireccion_ciudadEstado') || actualFieldName.includes('tadDireccion_direccion')) {
 				// Keep the full name with suffix (e.g., 'tadDireccion_ciudadEstado', 'tadDireccion_direccion')
-				actualFieldName = actualFieldName as any;
+				// Keep the full name with suffix
 			}
 			// For Cliente fields, keep the full name with suffix
 			else if (actualFieldName.includes('razonSocialComercial_razonSocial') || actualFieldName.includes('razonSocialComercial_direccion') || 
 				(actualFieldName as string) === 'rfc' || (actualFieldName as string) === 'noCliente' || (actualFieldName as string) === 'name' || 
 				(actualFieldName as string) === 'unbMx' || (actualFieldName as string) === 'direccionCorta' || (actualFieldName as string) === 'id2') {
 				// Keep the full name with suffix (e.g., 'razonSocialComercial_razonSocial', 'razonSocialComercial_direccion', 'rfc', 'noCliente', 'name', 'unbMx', 'direccionCorta', 'id2')
-				actualFieldName = actualFieldName as any;
+				// Keep the full name with suffix
 			}
 			// For Producto fields, keep the full name with suffix
 			else if (actualFieldName.includes('producto_clave') || actualFieldName.includes('producto_descripcion') || actualFieldName.includes('producto_nombre') || actualFieldName.includes('producto_temperatura') || actualFieldName.includes('producto_iva')) {
 				// Keep the full name with suffix (e.g., 'producto_clave', 'producto_descripcion', 'producto_nombre', 'producto_temperatura', 'producto_iva')
-				actualFieldName = actualFieldName as any;
+				// Keep the full name with suffix
 			}
 			// For Importe field, keep the full name
-			else if ((actualFieldName as string) === 'importe') {
+			else if (actualFieldName === 'importe') {
 				// Keep the full name (e.g., 'importe')
-				actualFieldName = 'importe' as any;
+				actualFieldName = 'importe';
 			}
 			// For Importe con IVA field, keep the full name
-			else if ((actualFieldName as string) === 'importe_con_iva') {
+			else if (actualFieldName === 'importe_con_iva') {
 				// Keep the full name (e.g., 'importe_con_iva')
-				actualFieldName = 'importe_con_iva' as any;
+				actualFieldName = 'importe_con_iva';
 			}
 			// For Importe Total field, keep the full name
-			else if ((actualFieldName as string) === 'importe_total') {
+			else if (actualFieldName === 'importe_total') {
 				// Keep the full name (e.g., 'importe_total')
-				actualFieldName = 'importe_total' as any;
+				actualFieldName = 'importe_total';
 			}
 			// For Importe Total en Letras field, keep the full name
-			else if ((actualFieldName as string) === 'importe_total_en_letras') {
+			else if (actualFieldName === 'importe_total_en_letras') {
 				// Keep the full name (e.g., 'importe_total_en_letras')
-				actualFieldName = 'importe_total_en_letras' as any;
+				actualFieldName = 'importe_total_en_letras';
 			}
 			// For Fecha Pemex field, keep the full name
-			else if ((actualFieldName as string) === 'fecha_pemex') {
+			else if (actualFieldName === 'fecha_pemex') {
 				// Keep the full name (e.g., 'fecha_pemex')
-				actualFieldName = 'fecha_pemex' as any;
+				actualFieldName = 'fecha_pemex';
 			}
 			// For Cantidad al Natural field, keep the full name
-			else if ((actualFieldName as string) === 'cantidad_al_natural') {
+			else if (actualFieldName === 'cantidad_al_natural') {
 				// Keep the full name (e.g., 'cantidad_al_natural')
-				actualFieldName = 'cantidad_al_natural' as any;
+				actualFieldName = 'cantidad_al_natural';
 			}
 		} else if (pendingFieldName.startsWith('client_')) {
-			actualFieldName = pendingFieldName.replace('client_', '') as keyof ClientType;
+			actualFieldName = pendingFieldName.replace('client_', '') as FieldName;
 		}
 
 		// Since we're using Document component instead of canvas, use a default background color
@@ -1066,7 +1114,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					f.id === pendingField.id
 						? {
 							...f,
-							name: actualFieldName,
+							name: actualFieldName as Field['name'],
 							backgroundColor,
 							type: actualFieldName === 'qr_code' ? 'qr' : 'data',
 							...(actualFieldName === 'qr_code' && {
@@ -1087,7 +1135,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				y: pendingFieldRect.y ?? 0,
 				width: pendingFieldRect.width ?? 0,
 				height: pendingFieldRect.height ?? 0,
-				name: actualFieldName,
+				name: actualFieldName as Field['name'],
 				backgroundColor,
 				type: actualFieldName === 'qr_code' ? 'qr' : 'data',
 			};
@@ -1257,7 +1305,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			dropdownId = 'qr_code';
 		}
 		
-		setPendingFieldName(dropdownId as any);
+		setPendingFieldName(dropdownId as FieldName);
 	}, [scale]);
 
 	const handleSetActiveFieldId = useCallback((id: string | null) => {
@@ -1375,7 +1423,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 													direccion: 'Av. Principal 123, Col. Centro, Ciudad de México',
 													direccionCorta: 'Av. Principal 123, CDMX',
 													id2: 'CLI-001-ALT',
-													status: 'ACTIVE' as any,
+													status: 'ACTIVE' as StatusType,
 													createdAt: new Date(),
 													updatedAt: new Date(),
 												};

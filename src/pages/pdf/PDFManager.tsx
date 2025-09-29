@@ -49,7 +49,7 @@ export const PdfManager = () => {
 		const [firstPage] = await newPdf.copyPages(originalPdf, [0]);
 		newPdf.addPage(firstPage);
 		const pdfBytes = await newPdf.save();
-		const singlePageFile = new File([pdfBytes], file.name, {type: 'application/pdf'});
+		const singlePageFile = new File([pdfBytes as BlobPart], file.name, {type: 'application/pdf'});
 		setPdfFile(singlePageFile);
 	}
 
