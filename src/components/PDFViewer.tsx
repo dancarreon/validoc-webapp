@@ -90,22 +90,182 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 	const trazaKeys = useMemo(() => {
 		const keys = Object.keys(new Traza({})) as (keyof TrazaType)[];
-		return keys
+		const dropdownElements: DropdownElement[] = [];
+		
+		// Add Traza group header first
+		dropdownElements.push({
+			id: 'traza_group_header',
+			name: '📊 Traza'
+		});
+
+		// Add all traza fields under the group
+		keys
+			.filter(key => key !== 'tadDireccionId' && key !== 'tadDireccion' && key !== 'razonSocialComercial' && key !== 'razonSocialComercialId' && key !== 'cliente' && key !== 'clienteId' && key !== 'producto' && key !== 'productoId' && (key as string) !== 'rfc') // Exclude tadDireccionId, tadDireccion, razonSocialComercial, razonSocialComercialId, cliente, clienteId, producto, productoId, and rfc from the dropdown
 			.sort((a, b) => a.localeCompare(b))
-			.map(key => ({
-				id: `traza_${key}`,
-				name: `📊 ${key}`
-			} as DropdownElement));
+			.forEach(key => {
+				// Add the main field with indentation
+				dropdownElements.push({
+					id: `traza_${key}`,
+					name: `   • ${key}`
+				});
+				
+				// If it's a date field, add breakdown options
+				if (key === 'fechaHoraPemex' || key === 'fechaHoraTrasvase') {
+					dropdownElements.push(
+						{
+							id: `traza_${key}_year`,
+							name: `   • ${key} - Año`
+						},
+						{
+							id: `traza_${key}_month`,
+							name: `   • ${key} - Mes`
+						},
+						{
+							id: `traza_${key}_day`,
+							name: `   • ${key} - Día`
+						}
+					);
+				}
+			});
+
+		// Add TAD Direccion group with sub-options
+		dropdownElements.push(
+			{
+				id: 'tad_group_header',
+				name: '🏢 TAD Direccion'
+			},
+			{
+				id: 'traza_tadDireccion_ciudadEstado',
+				name: '   • Ciudad, Estado'
+			},
+			{
+				id: 'traza_tadDireccion_direccion',
+				name: '   • Direccion'
+			}
+		);
+
+		// Add Cliente group with sub-options
+		dropdownElements.push(
+			{
+				id: 'cliente_group_header',
+				name: '👤 Cliente'
+			},
+			{
+				id: 'traza_razonSocialComercial_razonSocial',
+				name: '   • Razon Social'
+			},
+			{
+				id: 'traza_razonSocialComercial_direccion',
+				name: '   • Direccion'
+			},
+			{
+				id: 'traza_rfc',
+				name: '   • RFC'
+			},
+			{
+				id: 'traza_noCliente',
+				name: '   • No Cliente'
+			},
+			{
+				id: 'traza_name',
+				name: '   • Nombre'
+			},
+			{
+				id: 'traza_unbMx',
+				name: '   • UNB MX'
+			},
+			{
+				id: 'traza_direccionCorta',
+				name: '   • Direccion Corta'
+			},
+			{
+				id: 'traza_id2',
+				name: '   • ID2'
+			}
+		);
+
+		// Add Producto group with sub-options
+		dropdownElements.push(
+			{
+				id: 'producto_group_header',
+				name: '📦 Producto'
+			},
+			{
+				id: 'traza_producto_clave',
+				name: '   • Clave'
+			},
+			{
+				id: 'traza_producto_descripcion',
+				name: '   • Descripcion'
+			},
+			{
+				id: 'traza_producto_nombre',
+				name: '   • Nombre'
+			},
+			{
+				id: 'traza_producto_temperatura',
+				name: '   • Temperatura'
+			},
+			{
+				id: 'traza_producto_iva',
+				name: '   • IVA'
+			}
+		);
+
+		// Add Importe field
+		dropdownElements.push(
+			{
+				id: 'traza_importe',
+				name: '💰 Importe'
+			}
+		);
+
+		// Add Importe con IVA field
+		dropdownElements.push(
+			{
+				id: 'traza_importe_con_iva',
+				name: '💰 Importe con IVA'
+			}
+		);
+
+		// Add Importe Total field
+		dropdownElements.push(
+			{
+				id: 'traza_importe_total',
+				name: '💰 Importe Total'
+			}
+		);
+
+		// Add Importe Total en Letras field
+		dropdownElements.push(
+			{
+				id: 'traza_importe_total_en_letras',
+				name: '📝 Importe Total en Letras'
+			}
+		);
+
+		// Add Fecha Pemex field
+		dropdownElements.push(
+			{
+				id: 'traza_fecha_pemex',
+				name: '📅 Fecha Pemex'
+			}
+		);
+
+		// Add Cantidad al Natural field
+		dropdownElements.push(
+			{
+				id: 'traza_cantidad_al_natural',
+				name: '📊 Cantidad al Natural'
+			}
+		);
+		
+		return dropdownElements;
 	}, []);
 
 	const clientKeys = useMemo(() => {
-		const keys = Object.keys(new Client({})) as (keyof ClientType)[];
-		return keys
-			.sort((a, b) => a.localeCompare(b))
-			.map(key => ({
-				id: `client_${key}`,
-				name: `👤 ${key}`
-			} as DropdownElement));
+		// Return empty array since all client fields are now under the Cliente group
+		return [];
 	}, []);
 
 	const qrCodeKeys = useMemo(() => [{
@@ -167,10 +327,17 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			name: f.name,
 			type: f.type || 'data',
 			fontFamily: f.fontFamily || 'Helvetica',
-			fontSize: f.fontSize || 6,
+			fontSize: f.fontSize || 15,
 			align: f.align || 'left',
 			color: f.backgroundColor || '#ffffff'
 		}));
+
+		// Debug logging to show what's being sent to the API
+		console.log('=== TEMPLATE SAVE DEBUG ===');
+		console.log('Template Data:', templateData);
+		console.log('Fields being saved:', templateData.fields);
+		console.log('Date breakdown fields:', templateData.fields.filter(f => f.name.includes('_year') || f.name.includes('_month') || f.name.includes('_day')));
+		console.log('===========================');
 
 
 		// Find all QR fields and populate qrField attribute as array
@@ -183,8 +350,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 				qrBackgroundColor: qrField.qrBackgroundColor || '#ffffff',
 				qrErrorCorrectionLevel: qrField.qrErrorCorrectionLevel || 'M',
 			} as QrField));
+			console.log('QR Fields being saved:', templateData.qrField);
 		} else {
 			templateData.qrField = null;
+			console.log('No QR fields found');
 		}
 
 		if (!template) {
@@ -199,6 +368,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					templateData.pdfFile = uploadFileName;
 					templateData.containerWidth = containerWidth ?? undefined;
 
+					console.log('=== CREATING NEW TEMPLATE ===');
+					console.log('Final template data being sent to createTemplate API:', templateData);
+					console.log('================================');
 
 					const newTemplate: TemplateType = await createTemplate(templateData);
 					if (newTemplate) {
@@ -219,6 +391,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			// Update existing template
 			setIsLoading(true);
 
+			console.log('=== UPDATING EXISTING TEMPLATE ===');
+			console.log('Template ID:', template.id);
+			console.log('Final template data being sent to updateTemplate API:', templateData);
+			console.log('===================================');
 
 			const savedTemplate = await updateTemplate(template.id, templateData);
 
@@ -331,7 +507,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 					width: f.width || 50,
 					height: f.height || 20,
 					fontFamily: f.fontFamily || 'Helvetica',
-					fontSize: f.fontSize || 6,
+					fontSize: f.fontSize || 15,
 					align: f.align || 'left',
 					backgroundColor: f.color || '#ffffff',
 					type: f.type || 'data',
@@ -354,7 +530,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 							width: 100,
 							height: 100,
 							fontFamily: 'Helvetica',
-							fontSize: 6,
+							fontSize: 15,
 							align: 'left',
 							backgroundColor: '#ffffff',
 							type: 'qr',
@@ -804,12 +980,79 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 
 	function handleAddField() {
 		if (!pendingFieldRect || !pendingFieldName) return;
+		
+		// Don't allow selection of group headers
+		if ((pendingFieldName as string) === 'traza_group_header' ||
+			(pendingFieldName as string) === 'producto_group_header' || 
+			(pendingFieldName as string) === 'tad_group_header' || 
+			(pendingFieldName as string) === 'cliente_group_header') {
+			setPendingField(null);
+			setPendingFieldRect(null);
+			setPendingFieldName('');
+			return;
+		}
+		
 		const backgroundColor = '#ffffff';
 
 		// Extract the actual field name from the prefixed key
 		let actualFieldName = pendingFieldName;
+		
 		if (pendingFieldName.startsWith('traza_')) {
 			actualFieldName = pendingFieldName.replace('traza_', '') as keyof TrazaType;
+			
+			// For date breakdown fields, keep the suffix in the field name
+			// This way the field name itself indicates what part of the date to extract
+			if (actualFieldName.includes('_year') || actualFieldName.includes('_month') || actualFieldName.includes('_day')) {
+				// Keep the full name with suffix (e.g., 'fechaHoraPemex_year', 'fechaHoraTrasvase_year')
+				actualFieldName = actualFieldName as any;
+			}
+			// For TAD Direccion fields, keep the full name with suffix
+			else if (actualFieldName.includes('tadDireccion_ciudadEstado') || actualFieldName.includes('tadDireccion_direccion')) {
+				// Keep the full name with suffix (e.g., 'tadDireccion_ciudadEstado', 'tadDireccion_direccion')
+				actualFieldName = actualFieldName as any;
+			}
+			// For Cliente fields, keep the full name with suffix
+			else if (actualFieldName.includes('razonSocialComercial_razonSocial') || actualFieldName.includes('razonSocialComercial_direccion') || 
+				(actualFieldName as string) === 'rfc' || (actualFieldName as string) === 'noCliente' || (actualFieldName as string) === 'name' || 
+				(actualFieldName as string) === 'unbMx' || (actualFieldName as string) === 'direccionCorta' || (actualFieldName as string) === 'id2') {
+				// Keep the full name with suffix (e.g., 'razonSocialComercial_razonSocial', 'razonSocialComercial_direccion', 'rfc', 'noCliente', 'name', 'unbMx', 'direccionCorta', 'id2')
+				actualFieldName = actualFieldName as any;
+			}
+			// For Producto fields, keep the full name with suffix
+			else if (actualFieldName.includes('producto_clave') || actualFieldName.includes('producto_descripcion') || actualFieldName.includes('producto_nombre') || actualFieldName.includes('producto_temperatura') || actualFieldName.includes('producto_iva')) {
+				// Keep the full name with suffix (e.g., 'producto_clave', 'producto_descripcion', 'producto_nombre', 'producto_temperatura', 'producto_iva')
+				actualFieldName = actualFieldName as any;
+			}
+			// For Importe field, keep the full name
+			else if ((actualFieldName as string) === 'importe') {
+				// Keep the full name (e.g., 'importe')
+				actualFieldName = 'importe' as any;
+			}
+			// For Importe con IVA field, keep the full name
+			else if ((actualFieldName as string) === 'importe_con_iva') {
+				// Keep the full name (e.g., 'importe_con_iva')
+				actualFieldName = 'importe_con_iva' as any;
+			}
+			// For Importe Total field, keep the full name
+			else if ((actualFieldName as string) === 'importe_total') {
+				// Keep the full name (e.g., 'importe_total')
+				actualFieldName = 'importe_total' as any;
+			}
+			// For Importe Total en Letras field, keep the full name
+			else if ((actualFieldName as string) === 'importe_total_en_letras') {
+				// Keep the full name (e.g., 'importe_total_en_letras')
+				actualFieldName = 'importe_total_en_letras' as any;
+			}
+			// For Fecha Pemex field, keep the full name
+			else if ((actualFieldName as string) === 'fecha_pemex') {
+				// Keep the full name (e.g., 'fecha_pemex')
+				actualFieldName = 'fecha_pemex' as any;
+			}
+			// For Cantidad al Natural field, keep the full name
+			else if ((actualFieldName as string) === 'cantidad_al_natural') {
+				// Keep the full name (e.g., 'cantidad_al_natural')
+				actualFieldName = 'cantidad_al_natural' as any;
+			}
 		} else if (pendingFieldName.startsWith('client_')) {
 			actualFieldName = pendingFieldName.replace('client_', '') as keyof ClientType;
 		}
@@ -903,9 +1146,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 		e.preventDefault();
 		const field = fields.find(f => f.id === fieldId);
 
-		// Show QR context menu for QR fields on double-click
-		if (field && field.type === 'qr') {
-			setQrContextMenu({x: e.clientX, y: e.clientY, fieldId});
+		if (field) {
+			// For all field types, enable editing the field attribute on double-click
+			handleEditField(field);
 		}
 	}, [fields]);
 
@@ -970,7 +1213,51 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 			}
 		}
 
-		setPendingFieldName(field.name);
+		// Convert field name to dropdown ID format
+		let dropdownId: string = field.name;
+		
+		// Check if it's a traza field (including date breakdown fields, TAD Direccion fields, Cliente fields, Producto fields, and Importe field)
+		if (field.name.startsWith('fechaHoraPemex') || field.name.startsWith('fechaHoraTrasvase') || 
+			field.name.startsWith('tadDireccion_') || field.name.startsWith('razonSocialComercial_') || 
+			field.name.startsWith('producto_') || (field.name as string) === 'rfc' || (field.name as string) === 'noCliente' || 
+			(field.name as string) === 'name' || (field.name as string) === 'unbMx' || (field.name as string) === 'direccionCorta' || 
+			(field.name as string) === 'id2' || (field.name in new Traza({}))) {
+			dropdownId = `traza_${field.name}`;
+		}
+		// Check if it's the Importe field
+		else if ((field.name as string) === 'importe') {
+			dropdownId = 'traza_importe';
+		}
+		// Check if it's the Importe con IVA field
+		else if ((field.name as string) === 'importe_con_iva') {
+			dropdownId = 'traza_importe_con_iva';
+		}
+		// Check if it's the Importe Total field
+		else if ((field.name as string) === 'importe_total') {
+			dropdownId = 'traza_importe_total';
+		}
+		// Check if it's the Importe Total en Letras field
+		else if ((field.name as string) === 'importe_total_en_letras') {
+			dropdownId = 'traza_importe_total_en_letras';
+		}
+		// Check if it's the Fecha Pemex field
+		else if ((field.name as string) === 'fecha_pemex') {
+			dropdownId = 'traza_fecha_pemex';
+		}
+		// Check if it's the Cantidad al Natural field
+		else if ((field.name as string) === 'cantidad_al_natural') {
+			dropdownId = 'traza_cantidad_al_natural';
+		}
+		// Check if it's a client field
+		else if (field.name in new Client({})) {
+			dropdownId = `client_${field.name}`;
+		}
+		// Check if it's a QR field
+		else if (field.name === 'qr_code') {
+			dropdownId = 'qr_code';
+		}
+		
+		setPendingFieldName(dropdownId as any);
 	}, [scale]);
 
 	const handleSetActiveFieldId = useCallback((id: string | null) => {
@@ -1261,10 +1548,13 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({file, onSaveFields, templat
 								 onClick={(e) => e.stopPropagation()}
 								 onMouseDown={(e) => e.stopPropagation()}>
 								<label className="block text-xs mb-1 text-white">
-									{!isSelecting ? '📝 Texto seleccionado - ' : ''}Seleccione la propiedad a mostrar:
+									{pendingField && 'id' in pendingField 
+										? '✏️ Editando campo - ' 
+										: (!isSelecting ? '📝 Texto seleccionado - ' : '')
+									}Seleccione la propiedad a mostrar:
 								</label>
 								<div className="text-xs text-gray-300 mb-2">
-									💡 <strong>Atajos:</strong> Enter para crear • Escape para cancelar
+									💡 <strong>Atajos:</strong> Enter para {pendingField && 'id' in pendingField ? 'actualizar' : 'crear'} • Escape para cancelar
 								</div>
 
 								{/* Combined dropdown for both Traza and Client properties */}

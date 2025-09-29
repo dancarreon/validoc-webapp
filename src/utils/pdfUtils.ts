@@ -44,7 +44,7 @@ export async function createPdfWithFields(
 		const fieldY = field.y * scaleFactor;
 		const fieldWidth = field.width * scaleFactor;
 		const fieldHeight = field.height * scaleFactor;
-		const scaledFontSize = (field.fontSize || 6) * scaleFactor;
+		const scaledFontSize = (field.fontSize || 15) * scaleFactor;
 
 		// Clamp coordinates to PDF boundaries to prevent fields from going outside
 		const pdfX = Math.max(0, Math.min(fieldX, pdfWidth - fieldWidth));

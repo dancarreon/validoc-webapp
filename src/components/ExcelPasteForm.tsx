@@ -20,11 +20,14 @@ import {DropdownSearch} from "./DropdownSearch.tsx";
 import {getAllSolicitantes} from "../api/solicitante-api.ts";
 import {getAllConsecutivos} from "../api/consecutivo-api.ts";
 import {ConsecutivoType} from "../api/types/consecutivo-types.ts";
+import {getAllTads} from "../api/tads-api.ts";
+import {TadType} from "../api/types/tad-types.ts";
 
 interface AttributeValuePair {
 	attribute: string;
 	value: string;
 	originalAttribute?: string; // Keep track of original Excel attribute for reference
+	originalValue?: string; // Keep track of original Excel value for reference
 	similarity?: number; // Track similarity score for auto-selected attributes
 }
 
@@ -104,6 +107,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 	const [selectedSolicitanteId, setSelectedSolicitanteId] = useState<string>('');
 	const [consecutivos, setConsecutivos] = useState<ConsecutivoType[]>([]);
 	const [selectedConsecutivoId, setSelectedConsecutivoId] = useState<string>('');
+	const [tads, setTads] = useState<TadType[]>([]);
 	const navigate = useNavigate();
 	const pasteAreaRef = useRef<HTMLDivElement>(null);
 	const processedSectionsRef = useRef<Set<string>>(new Set());
@@ -149,14 +153,17 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 				const parts = line.split(/\t|  +|:/).map(part => part.trim()).filter(part => part);
 
 				if (parts.length >= 2) {
+					const value = parts.slice(1).join(' ');
 					currentRows.push({
 						attribute: parts[0],
-						value: parts.slice(1).join(' ')
+						value: value,
+						originalValue: value
 					});
 				} else if (parts.length === 1) {
 					currentRows.push({
 						attribute: parts[0],
-						value: ''
+						value: '',
+						originalValue: ''
 					});
 				}
 			}
@@ -172,7 +179,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 	}, []);
 
 	// Function to auto-select attributes based on Excel data
-	const autoSelectAttributes = useCallback((parsedSections: SectionData[]) => {
+	const autoSelectAttributes = useCallback((parsedSections: SectionData[], products: ProductType[]) => {
 		// Exact mapping from Excel attributes to Traza attributes
 		const attributeMapping: Record<string, string> = {
 			'Tractor': '',
@@ -218,6 +225,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 						attribute: '',
 						originalAttribute: 'Origen (Municipio)',
 						value: municipio,
+						originalValue: municipio,
 						similarity: undefined
 					});
 
@@ -226,6 +234,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 						attribute: '',
 						originalAttribute: 'Origen (Estado)',
 						value: estado,
+						originalValue: estado,
 						similarity: undefined
 					});
 				}
@@ -238,6 +247,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 						attribute: '',
 						originalAttribute: 'Destino (Municipio)',
 						value: municipio,
+						originalValue: municipio,
 						similarity: undefined
 					});
 
@@ -246,6 +256,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 						attribute: '',
 						originalAttribute: 'Destino (Estado)',
 						value: estado,
+						originalValue: estado,
 						similarity: undefined
 					});
 				} else {
@@ -262,23 +273,38 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 						if (isAlreadySelected) {
 							processedRows.push({
 								...row,
+								originalValue: row.value,
 								similarity: undefined,
 								originalAttribute: undefined
 							});
 						} else {
-							// Special handling for productoId - don't auto-select here, let useEffect handle it
+							// Special handling for productoId - try to auto-select if products are available
 							if (mappedAttribute === 'productoId' && row.value.trim()) {
+								let finalValue = row.value;
+								let similarity = 1.0;
+								
+								// If products are available, try to find a match
+								if (products.length > 0) {
+									const matchingProduct = findMatchingProduct(row.value);
+									if (matchingProduct) {
+										finalValue = matchingProduct.id;
+									}
+								}
+								
 								processedRows.push({
 									...row,
 									attribute: mappedAttribute,
 									originalAttribute: row.attribute,
-									similarity: 1.0
+									originalValue: row.value,
+									value: finalValue,
+									similarity: similarity
 								});
 							} else {
 								processedRows.push({
 									...row,
 									attribute: mappedAttribute,
 									originalAttribute: row.attribute, // Keep original Excel attribute for reference
+									originalValue: row.value, // Keep original Excel value for reference
 									similarity: 1.0 // Perfect match since it's exact mapping
 								});
 							}
@@ -287,6 +313,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 						// Attributes without mapping (empty in the mapping) get no similarity
 						processedRows.push({
 							...row,
+							originalValue: row.value,
 							similarity: undefined,
 							originalAttribute: undefined
 						});
@@ -301,7 +328,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 		});
 
 		return processedSections;
-	}, []);
+	}, [products]);
 
 	// Handle paste event
 	const handlePaste = useCallback((e: React.ClipboardEvent) => {
@@ -310,26 +337,23 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 		const parsedSections = parseExcelData(text);
 
 		// Apply auto-selection
-		const autoSelectedSections = autoSelectAttributes(parsedSections);
+		const autoSelectedSections = autoSelectAttributes(parsedSections, products);
 
 		// Clear processed sections ref for new data
 		processedSectionsRef.current.clear();
 
 		setSections(autoSelectedSections);
 		setIsPasteAreaActive(false);
-	}, [parseExcelData, autoSelectAttributes]);
+	}, [parseExcelData, autoSelectAttributes, products]);
 
-	// Apply product auto-selection when products are loaded
+	// Apply product auto-selection when products are loaded or sections change
 	useEffect(() => {
-		console.log('🔄 useEffect triggered - products:', products.length, 'sections:', sections.length);
-
 		if (products.length > 0 && sections.length > 0) {
 			// Create a unique key for the current sections to avoid reprocessing
 			const sectionsKey = JSON.stringify(sections.map(s => s.title + s.rows.length));
 
 			// Skip if we've already processed these sections
 			if (processedSectionsRef.current.has(sectionsKey)) {
-				console.log('⏭️ Skipping - already processed sections');
 				return;
 			}
 
@@ -340,57 +364,33 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 				)
 			);
 
-			console.log('🔍 Needs product auto-selection:', needsProductAutoSelection);
-
 			if (needsProductAutoSelection) {
-				console.log('🚀 Processing product auto-selection...');
 				const updatedSections = sections.map(section => ({
 					...section,
 					rows: section.rows.map(row => {
 						// If this row has productoId attribute but no product UUID, try to auto-select
 						if (row.attribute === 'productoId' && row.value && !row.value.includes('-')) {
-							const productDescription = row.value.toLowerCase();
-							console.log('🔍 Trying to match product:', productDescription);
-
-							// More robust product matching - try exact matches first, then partial matches
-							let bestProductMatch = products.find(product =>
-								product.descripcion.toLowerCase() === productDescription ||
-								product.clave.toLowerCase() === productDescription
-							);
-
-							// If no exact match, try partial matches
-							if (!bestProductMatch) {
-								bestProductMatch = products.find(product =>
-									product.descripcion.toLowerCase().includes(productDescription) ||
-									product.clave.toLowerCase().includes(productDescription) ||
-									productDescription.includes(product.clave.toLowerCase()) ||
-									productDescription.includes(product.descripcion.toLowerCase())
-								);
-							}
-
-							if (bestProductMatch) {
-								console.log('✅ Found product match:', bestProductMatch.clave, bestProductMatch.descripcion);
+							const matchingProduct = findMatchingProduct(row.value);
+							
+							if (matchingProduct) {
 								return {
 									...row,
-									value: bestProductMatch.id, // Set the UUID
+									value: matchingProduct.id, // Set the UUID
 									similarity: 1.0,
 									originalAttribute: row.originalAttribute || row.attribute
 								};
-							} else {
-								console.log('❌ No product match found for:', productDescription);
 							}
 						}
 						return row;
 					})
 				}));
 
-				console.log('📝 Updating sections with product matches');
 				setSections(updatedSections);
 				// Mark these sections as processed
 				processedSectionsRef.current.add(sectionsKey);
 			}
 		}
-	}, [products, sections]); // Keep sections in dependency array
+	}, [products]); // Keep only products in dependency array to avoid interference
 
 	// Handle click on paste area
 	const handlePasteAreaClick = () => {
@@ -402,9 +402,57 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 	// Handle attribute change
 	const handleAttributeChange = (sectionIndex: number, rowIndex: number, newAttribute: string) => {
 		const newSections = [...sections];
+		const currentRow = newSections[sectionIndex].rows[rowIndex];
+		const isMunicipioRow = currentRow.originalAttribute === 'Origen (Municipio)' || currentRow.originalAttribute === 'Destino (Municipio)';
+		
+		// If changing away from TAD Dirección for a Municipio row, restore original value
+		if (currentRow.attribute === 'tadDireccionId' && newAttribute !== 'tadDireccionId' && isMunicipioRow) {
+			// Restore original city value
+			newSections[sectionIndex].rows[rowIndex].value = currentRow.originalValue || '';
+			
+			// Also restore the state value in the next row if it exists
+			const nextRow = newSections[sectionIndex].rows[rowIndex + 1];
+			if (nextRow && (nextRow.originalAttribute === 'Origen (Estado)' || nextRow.originalAttribute === 'Destino (Estado)')) {
+				newSections[sectionIndex].rows[rowIndex + 1].value = nextRow.originalValue || '';
+			}
+		}
+		
+		// If changing away from Producto, restore original value
+		if (currentRow.attribute === 'productoId' && newAttribute !== 'productoId') {
+			newSections[sectionIndex].rows[rowIndex].value = currentRow.originalValue || '';
+		}
+		
 		// Clear similarity when manually changing attribute
 		newSections[sectionIndex].rows[rowIndex].attribute = newAttribute;
 		newSections[sectionIndex].rows[rowIndex].similarity = undefined;
+		
+		// If selecting TAD Dirección for a Municipio row, try to find matching TAD
+		if (newAttribute === 'tadDireccionId' && isMunicipioRow) {
+			// Get the city from current row and state from next row
+			const ciudad = currentRow.value;
+			const nextRow = newSections[sectionIndex].rows[rowIndex + 1];
+			const estado = nextRow?.value || '';
+			
+			if (ciudad && estado) {
+				const matchingTad = findMatchingTad(ciudad, estado);
+				if (matchingTad) {
+					newSections[sectionIndex].rows[rowIndex].value = matchingTad.id;
+				}
+			}
+		}
+		
+		// If selecting Producto, try to find matching product
+		if (newAttribute === 'productoId') {
+			const productDescription = currentRow.value;
+			
+			if (productDescription) {
+				const matchingProduct = findMatchingProduct(productDescription);
+				if (matchingProduct) {
+					newSections[sectionIndex].rows[rowIndex].value = matchingProduct.id;
+				}
+			}
+		}
+		
 		setSections(newSections);
 	};
 
@@ -429,7 +477,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 		sections.forEach((section, sectionIdx) => {
 			section.rows.forEach((row, rowIdx) => {
 				if (sectionIdx === currentSectionIndex && rowIdx === currentRowIndex) {
-					return;
+					return; // Skip the current row being edited
 				}
 				if (row.attribute && row.attribute !== '') {
 					selectedAttributes.add(row.attribute);
@@ -444,10 +492,74 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 
 
 
-	// Get cleaned display value for input fields (removes spaces and commas)
-	const getCleanedDisplayValue = (value: string) => {
+	// Get cleaned display value for input fields (removes spaces and commas for certain fields)
+	const getCleanedDisplayValue = (value: string, originalAttribute?: string) => {
 		if (!value) return value;
+		
+		// For city/municipio fields, preserve spaces but remove commas
+		if (originalAttribute === 'Origen (Municipio)' || originalAttribute === 'Destino (Municipio)') {
+			return value.replace(/,/g, '');
+		}
+		
+		// For other fields, remove spaces and commas as before
 		return value.replace(/[\s,]/g, '');
+	};
+
+	// Search for TADs based on city and state
+	const findMatchingTad = (ciudad: string, estado: string): TadType | null => {
+		if (!ciudad || !estado || tads.length === 0) return null;
+		
+		const cleanCiudad = ciudad.toLowerCase().trim();
+		const cleanEstado = estado.toLowerCase().trim();
+		
+		// Try exact match first
+		let matchingTad = tads.find(tad => 
+			tad.ciudad.toLowerCase().trim() === cleanCiudad &&
+			tad.estado?.name?.toLowerCase().trim() === cleanEstado
+		);
+		
+		// If no exact match, try partial matches
+		if (!matchingTad) {
+			matchingTad = tads.find(tad => 
+				tad.ciudad.toLowerCase().includes(cleanCiudad) &&
+				tad.estado?.name?.toLowerCase().includes(cleanEstado)
+			);
+		}
+		
+		// If still no match, try reverse partial matches
+		if (!matchingTad) {
+			matchingTad = tads.find(tad => 
+				cleanCiudad.includes(tad.ciudad.toLowerCase()) &&
+				cleanEstado.includes(tad.estado?.name?.toLowerCase() || '')
+			);
+		}
+		
+		return matchingTad || null;
+	};
+
+	// Search for products based on description or key
+	const findMatchingProduct = (productDescription: string): ProductType | null => {
+		if (!productDescription || products.length === 0) return null;
+		
+		const cleanDescription = productDescription.toLowerCase().trim();
+		
+		// Try exact match first (description or key)
+		let matchingProduct = products.find(product => 
+			product.descripcion.toLowerCase().trim() === cleanDescription ||
+			product.clave.toLowerCase().trim() === cleanDescription
+		);
+		
+		// If no exact match, try partial matches
+		if (!matchingProduct) {
+			matchingProduct = products.find(product => 
+				product.descripcion.toLowerCase().includes(cleanDescription) ||
+				product.clave.toLowerCase().includes(cleanDescription) ||
+				cleanDescription.includes(product.clave.toLowerCase()) ||
+				cleanDescription.includes(product.descripcion.toLowerCase())
+			);
+		}
+		
+		return matchingProduct || null;
 	};
 
 	// Handle form submission
@@ -587,14 +699,15 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 		processedSectionsRef.current.clear();
 	};
 
-	// Fetch products, solicitantes, and consecutivos on mount
+	// Fetch products, solicitantes, consecutivos, and tads on mount
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [allProducts, allSolicitantes, allConsecutivos] = await Promise.all([
+				const [allProducts, allSolicitantes, allConsecutivos, allTads] = await Promise.all([
 					getAllProducts(0, 1000),
 					getAllSolicitantes(0, 1000),
-					getAllConsecutivos(0, 1000)
+					getAllConsecutivos(0, 1000),
+					getAllTads(0, 1000)
 				]);
 
 				if (allProducts) {
@@ -607,6 +720,9 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 					setConsecutivos(allConsecutivos);
 					// Automatically set the consecutivo ID when data is loaded
 					setSelectedConsecutivoId(allConsecutivos[0].id);
+				}
+				if (allTads) {
+					setTads(allTads);
 				}
 			} catch (error) {
 				console.error('Error fetching data:', error);
@@ -734,9 +850,12 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 													(row.originalAttribute === 'Destino (Municipio)' && nextRow.originalAttribute === 'Destino (Estado)'));
 
 											if (isLocationPair) {
+												// Capture the current rowIndex before it gets incremented
+												const municipioRowIndex = rowIndex;
+												
 												// Create Municipio row with normal cells
 												processedRows.push(
-													<div key={`${rowIndex}-municipio`}
+													<div key={`${sectionIndex}-${municipioRowIndex}-municipio`}
 														 className="grid grid-cols-3 gap-3 items-center">
 														<div className="bg-gray-50 p-2 rounded border border-gray-200">
 															<div className="text-xs text-gray-600 font-medium">
@@ -746,13 +865,13 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 														<div className="bg-gray-50 p-2 rounded border border-gray-200">
 															<select
 																value={row.attribute}
-																onChange={(e) => handleAttributeChange(sectionIndex, rowIndex, e.target.value)}
+																onChange={(e) => handleAttributeChange(sectionIndex, municipioRowIndex, e.target.value)}
 																className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
 																	row.similarity && row.attribute && row.attribute !== '' ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white'
 																} text-gray-900`}
 															>
 																<option value="">Seleccionar atributo...</option>
-																{getAvailableAttributes(sectionIndex, rowIndex).map(attr => (
+																{getAvailableAttributes(sectionIndex, municipioRowIndex).map(attr => (
 																	<option key={attr.value} value={attr.value}>
 																		{attr.label}
 																	</option>
@@ -760,20 +879,35 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 															</select>
 														</div>
 														<div>
+															{row.attribute === 'tadDireccionId' ? (
+																<select
+																	value={row.value}
+																	onChange={(e) => handleValueChange(sectionIndex, municipioRowIndex, e.target.value)}
+																	className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+																>
+																	<option value="">Seleccionar TAD...</option>
+																	{tads.map(tad => (
+																		<option key={tad.id} value={tad.id}>
+																			{tad.ciudad}, {tad.estado?.name}
+																		</option>
+																	))}
+																</select>
+															) : (
 															<input
 																type="text"
-																value={getCleanedDisplayValue(row.value)}
-																onChange={(e) => handleValueChange(sectionIndex, rowIndex, e.target.value)}
+																value={getCleanedDisplayValue(row.value, row.originalAttribute)}
+																onChange={(e) => handleValueChange(sectionIndex, municipioRowIndex, e.target.value)}
 																className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
 																placeholder="Valor"
 															/>
+															)}
 														</div>
 													</div>
 												);
 
 												// Create Estado row with merged middle cell (no dropdown)
 												processedRows.push(
-													<div key={`${rowIndex}-estado`}
+													<div key={`${sectionIndex}-${municipioRowIndex}-estado`}
 														 className="grid grid-cols-3 gap-3 items-center">
 														<div className="bg-gray-50 p-2 rounded border border-gray-200">
 															<div className="text-xs text-gray-600 font-medium">
@@ -786,10 +920,13 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 														<div>
 															<input
 																type="text"
-																value={getCleanedDisplayValue(nextRow.value)}
-																onChange={(e) => handleValueChange(sectionIndex, rowIndex + 1, e.target.value)}
-																className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+																value={getCleanedDisplayValue(nextRow.value, nextRow.originalAttribute)}
+																onChange={(e) => handleValueChange(sectionIndex, municipioRowIndex + 1, e.target.value)}
+																className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+																	row.attribute === 'tadDireccionId' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'
+																}`}
 																placeholder="Valor"
+																disabled={row.attribute === 'tadDireccionId'}
 															/>
 														</div>
 													</div>
@@ -800,7 +937,7 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 											} else if (!isLocationMunicipio && row.originalAttribute !== 'Origen (Estado)' && row.originalAttribute !== 'Destino (Estado)') {
 												// Regular row (not part of a location pair)
 												processedRows.push(
-													<div key={rowIndex} className="grid grid-cols-3 gap-3 items-center">
+													<div key={`${sectionIndex}-${rowIndex}-regular`} className="grid grid-cols-3 gap-3 items-center">
 														<div className="bg-gray-50 p-2 rounded border border-gray-200">
 															<div className="text-xs text-gray-600 font-medium">
 																{row.originalAttribute || row.attribute}
@@ -837,13 +974,13 @@ export const ExcelPasteForm: React.FC<ExcelPasteFormProps> = ({
 																	))}
 																</select>
 															) : (
-																<input
-																	type="text"
-																	value={getCleanedDisplayValue(row.value)}
-																	onChange={(e) => handleValueChange(sectionIndex, rowIndex, e.target.value)}
-																	className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-																	placeholder="Valor"
-																/>
+															<input
+																type="text"
+																value={getCleanedDisplayValue(row.value, row.originalAttribute)}
+																onChange={(e) => handleValueChange(sectionIndex, rowIndex, e.target.value)}
+																className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+																placeholder="Valor"
+															/>
 															)}
 														</div>
 													</div>

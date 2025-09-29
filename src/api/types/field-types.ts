@@ -17,6 +17,10 @@ export type Field = {
 	saved?: boolean;
 	backgroundColor?: string;
 	color?: string; // For template compatibility
+	text?: string; // The actual text value to display
+	// Multi-line text support
+	textLines?: string[]; // Array of text lines for multi-line fields
+	isMultiLine?: boolean; // Flag to indicate if field has multiple lines
 	// QR-specific properties
 	qrData?: string;
 	qrSize?: number;

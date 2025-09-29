@@ -31,8 +31,6 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 	const [fields, setFields] = useState<Field[]>(initialFields);
 	const [traza, setTraza] = useState<TrazaType | undefined>(initialTraza);
 	const [client, setClient] = useState<ClientType | undefined>(initialClient);
-	const [pdfPage, setPdfPage] = useState<any>(null);
-	const [isGenerating, setIsGenerating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	// Sync internal state with props
@@ -78,10 +76,6 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 		}
 	}));
 
-	// Generate PDF with fields using current state
-	const generatePDF = async () => {
-		return generatePDFWithParams(file, fields, traza, client, containerWidth);
-	};
 
 	// Generate PDF with fields using provided parameters
 	const generatePDFWithParams = async (
@@ -97,7 +91,6 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 			return;
 		}
 
-		setIsGenerating(true);
 		setError(null);
 
 		try {
@@ -142,8 +135,6 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Unknown error occurred');
-		} finally {
-			setIsGenerating(false);
 		}
 	};
 
@@ -159,9 +150,8 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 		client?: ClientType
 	) => {
 
-		// Load custom font
-		const fontBytes = await fetch('/fonts/NotoSans-Regular.ttf').then(res => res.arrayBuffer());
-		const customFont = await page.doc.embedFont(fontBytes);
+		// Load Helvetica font
+		const customFont = await page.doc.embedFont('Helvetica');
 
 		for (const field of fields) {
 			// Calculate field position and size
@@ -194,30 +184,66 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 			} else {
 				// Handle regular text fields
 				const text = getFieldText(field, traza, client);
-				const fontSize = (field.fontSize || 12) * scaleFactor;
-				const textY = fieldBottomY + fontSize * 0.2;
-
-				// Draw text
+				const fontSize = (field.fontSize || 15) * scaleFactor;
 				const textColor = parseColor(field.color || '#000000');
-				const textWidth = customFont.widthOfTextAtSize(text, fontSize);
 
-				// Calculate text position based on alignment
-				let textX = fieldX;
-				if (field.align === 'center') {
-					textX = fieldX + (fieldWidth - textWidth) / 2;
-				} else if (field.align === 'right') {
-					textX = fieldX + fieldWidth - textWidth;
+				// Check if this is a multi-line field
+				if (field.isMultiLine && field.textLines && field.textLines.length > 1) {
+					// Handle multi-line text
+					console.log(`Rendering multi-line text for field ${field.name}:`, field.textLines);
+					const lineHeight = fontSize * 1.2; // 20% line spacing
+					const startY = fieldBottomY + fieldHeight - fontSize;
+
+					for (let i = 0; i < field.textLines.length; i++) {
+						const line = field.textLines[i];
+						const lineY = startY - (i * lineHeight);
+
+						// Skip if line would go outside the field
+						if (lineY < fieldBottomY) break;
+
+						// Calculate text position based on alignment
+						const textWidth = customFont.widthOfTextAtSize(line, fontSize);
+						let textX = fieldX;
+
+						if (field.align === 'center') {
+							textX = fieldX + (fieldWidth - textWidth) / 2;
+						} else if (field.align === 'right') {
+							textX = fieldX + fieldWidth - textWidth;
+						}
+
+						// Draw the line
+						page.drawText(line, {
+							x: textX,
+							y: lineY,
+							size: fontSize,
+							font: customFont,
+							color: rgb(textColor.r, textColor.g, textColor.b),
+							maxWidth: fieldWidth,
+						});
+					}
+				} else {
+					// Handle single-line text (original logic)
+					const textY = fieldBottomY + fieldHeight - fontSize;
+					const textWidth = customFont.widthOfTextAtSize(text, fontSize);
+
+					// Calculate text position based on alignment
+					let textX = fieldX;
+					if (field.align === 'center') {
+						textX = fieldX + (fieldWidth - textWidth) / 2;
+					} else if (field.align === 'right') {
+						textX = fieldX + fieldWidth - textWidth;
+					}
+
+					// Draw text
+					page.drawText(text, {
+						x: textX,
+						y: textY,
+						size: fontSize,
+						font: customFont,
+						color: rgb(textColor.r, textColor.g, textColor.b),
+						maxWidth: fieldWidth,
+					});
 				}
-
-				// Draw text
-				page.drawText(text, {
-					x: textX,
-					y: textY,
-					size: fontSize,
-					font: customFont,
-					color: rgb(textColor.r, textColor.g, textColor.b),
-					maxWidth: fieldWidth,
-				});
 			}
 
 			// Field border removed - now borderless
@@ -313,9 +339,72 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 
 	// Get text content for a field
 	const getFieldText = (field: Field, traza?: TrazaType, client?: ClientType): string => {
+		// If field has a text property, use it directly (populated from Docs component)
+		if (field.text) {
+			return field.text;
+		}
+
 		// Handle QR code fields
 		if (field.type === 'qr') {
 			return `QR: ${field.qrData || 'Sample Data'}`;
+		}
+
+		// Handle date breakdown fields (e.g., 'fechaHoraPemex_year', 'fechaHoraPemex_month', 'fechaHoraPemex_day', 'fechaHoraTrasvase_year', etc.)
+		if (field.name.includes('_year') || field.name.includes('_month') || field.name.includes('_day')) {
+			// Extract the base field name (e.g., 'fechaHoraPemex' from 'fechaHoraPemex_year', 'fechaHoraTrasvase' from 'fechaHoraTrasvase_year')
+			const baseFieldName = field.name.replace(/_year|_month|_day$/, '') as keyof TrazaType;
+
+			if (traza && baseFieldName in traza) {
+				const dateValue = traza[baseFieldName];
+				if (dateValue && typeof dateValue === 'string') {
+					try {
+						// Handle different date formats
+						let date: Date;
+
+						// Try parsing the original format first
+						date = new Date(dateValue);
+
+						// If that fails, try to parse the specific format: "05/05/2025, 08:48:56 p.m."
+						if (isNaN(date.getTime())) {
+							// Parse format: "05/05/2025, 08:48:56 p.m."
+							const dateMatch = dateValue.match(/(\d{2})\/(\d{2})\/(\d{4}),\s+(\d{2}):(\d{2}):(\d{2})\s+(a\.m\.|p\.m\.)/);
+							if (dateMatch) {
+								const [, month, day, year, hour, minute, second, period] = dateMatch;
+
+								// Convert 12-hour to 24-hour format
+								let hour24 = parseInt(hour);
+								if (period === 'p.m.' && hour24 !== 12) {
+									hour24 += 12;
+								} else if (period === 'a.m.' && hour24 === 12) {
+									hour24 = 0;
+								}
+
+								// Create date with parsed values
+								date = new Date(
+									parseInt(year),
+									parseInt(month) - 1, // Month is 0-indexed
+									parseInt(day),
+									hour24,
+									parseInt(minute),
+									parseInt(second)
+								);
+							}
+						}
+
+						if (!isNaN(date.getTime())) {
+							if (field.name.includes('_year')) {
+								return date.getFullYear().toString();
+							} else if (field.name.includes('_month')) {
+								return (date.getMonth() + 1).toString().padStart(2, '0');
+							} else if (field.name.includes('_day')) {
+								return date.getDate().toString().padStart(2, '0');
+							}
+						}
+					} catch (error) {
+						console.error('Error parsing date:', error);
+					}
+				}
+			}
 		}
 
 		// Try to get data from traza
@@ -344,9 +433,7 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 					? await file.arrayBuffer()
 					: await fetch(file).then(res => res.arrayBuffer());
 
-				const pdf = await pdfjs.getDocument(arrayBuffer).promise;
-				const page = await pdf.getPage(1);
-				setPdfPage(page);
+				await pdfjs.getDocument(arrayBuffer).promise;
 			} catch (err) {
 				console.error('Error loading PDF:', err);
 				setError('Failed to load PDF');
@@ -358,25 +445,11 @@ export const ReactPDFGenerator = forwardRef<any, ReactPDFGeneratorProps>(({
 
 	return (
 		<div className="p-4">
-			<h3 className="text-lg font-bold mb-4">PDF Generator (React-PDF)</h3>
-
 			{error && (
 				<div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
 					Error: {error}
 				</div>
 			)}
-
-			<div className="mb-4">
-				<button
-					onClick={generatePDF}
-					disabled={!file || !pdfPage || isGenerating}
-					className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-				>
-					{isGenerating ? 'Generating PDF...' : 'Open PDF with Fields'}
-				</button>
-			</div>
-
-
 		</div>
 	);
 });

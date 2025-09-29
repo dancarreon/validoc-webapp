@@ -80,8 +80,8 @@ export const List = <T extends object>(
 			return String(element.ciudad);
 		} else if (model === ModelType.CLAVE && "clave" in element) {
 			return String(element.clave);
-		} else if (model === ModelType.PRODUCT && "clave" in element) {
-			return String(element.clave);
+		} else if (model === ModelType.PRODUCT && "idProducto" in element) {
+			return String(element.idProducto);
 		} else if (model === ModelType.TRAZA && "folio" in element) {
 			return String(element.id);
 		} else if (model === ModelType.TEMPLATE && "name" in element) {
@@ -100,10 +100,10 @@ export const List = <T extends object>(
 			return element.estado?.name as string;
 		} else if ("lastName" in element) {
 			return element.lastName as string;
-		} else if ("descripcion" in element) {
-			return element.descripcion as string;
 		} else if ("name" in element) {
 			return element.name as string;
+		} else if ("descripcion" in element) {
+			return element.descripcion as string;
 		}
 		return '';
 	}

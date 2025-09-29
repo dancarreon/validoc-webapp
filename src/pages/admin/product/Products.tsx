@@ -11,8 +11,8 @@ const pageProps = {
     newRecordPath: '/admin/nuevo-producto',
     listType: {model: ModelType.PRODUCT, elements: []} as ListType<ProductType>,
     subheaderProps: [
-        {title: 'Clave', dbProperty: 'clave', sort: 'asc'},
-        {title: 'Descripción', dbProperty: 'descripcion', sort: 'asc'},
+        {title: 'ID', dbProperty: 'idProducto', sort: 'asc'},
+        {title: 'Nombre', dbProperty: 'name', sort: 'asc'},
         {title: 'Status', dbProperty: 'status', sort: 'asc'}
     ] as SubHeaderProps[],
     searchApi: getAllProducts,

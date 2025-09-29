@@ -146,25 +146,33 @@ export const DropdownSearch: React.FC<CustomDropdownProps> = (
                                     {search ? `No options found for "${search}"` : "No options available"}
                                 </li>
                             ) : (
-                                filteredOptions.map((opt, index) => (
-                                    <li
-                                        key={opt.id}
-                                        tabIndex={0}
-                                        className={`px-4 py-2 cursor-pointer hover:bg-gray-200 text-black text-lg text-left ${
-                                            opt.id === value ? "bg-gray-100" : ""
-                                        } ${
-                                            index === selectedIndex ? "bg-blue-100 border-l-4 border-blue-500" : ""
-                                        }`}
-                                        onClick={() => {
-                                            onChange(opt.id ?? "");
-                                            setOpen(false);
-                                            setSearch("");
-                                            setSelectedIndex(-1);
-                                        }}
-                                    >
-                                        {opt.name}
-                                    </li>
-                                ))
+                                filteredOptions.map((opt, index) => {
+                                    // Check if this is a sub-option (starts with spaces and bullet)
+                                    const isSubOption = opt.name?.startsWith('   •');
+                                    const isGroupHeader = opt.id?.includes('_group_header');
+                                    
+                                    return (
+                                        <li
+                                            key={opt.id}
+                                            tabIndex={0}
+                                            className={`${isSubOption ? 'pl-8' : 'pl-4'} pr-4 py-2 cursor-pointer hover:bg-gray-200 text-black text-lg text-left ${
+                                                opt.id === value ? "bg-gray-100" : ""
+                                            } ${
+                                                index === selectedIndex ? "bg-blue-100 border-l-4 border-blue-500" : ""
+                                            } ${
+                                                isGroupHeader ? "font-semibold text-gray-700 bg-gray-50" : ""
+                                            }`}
+                                            onClick={() => {
+                                                onChange(opt.id ?? "");
+                                                setOpen(false);
+                                                setSearch("");
+                                                setSelectedIndex(-1);
+                                            }}
+                                        >
+                                            {opt.name}
+                                        </li>
+                                    );
+                                })
                             )}
                         </ul>
                     </div>

@@ -20,7 +20,7 @@ export const TrazaDoc: React.FC<PdfFillerProps> = ({template, traza}) => {
 		const pdfHeight = page.getHeight();
 
 		for (const field of template.fields) {
-			const size = field.fontSize || 12;
+			const size = field.fontSize || 15;
 			const x = field.x;
 			const y = pdfHeight - field.y - (field.height || 0);
 

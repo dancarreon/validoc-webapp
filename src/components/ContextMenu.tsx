@@ -56,7 +56,7 @@ export const ContextMenu: React.FC<Props & { onPickColor: () => void }> = (
 			<input type="number"
 				   min={6}
 				   max={72}
-				   value={field.fontSize || 14}
+				   value={field.fontSize || 15}
 				   onChange={e => updateFieldProperty(field.id, 'fontSize', parseInt(e.target.value, 10))}
 				   onClick={(e) => e.stopPropagation()}
 				   onMouseDown={(e) => e.stopPropagation()}
